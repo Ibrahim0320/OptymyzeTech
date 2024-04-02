@@ -45,15 +45,16 @@ entities = extract_entities(text_no_extra_characters)
 
 
 
-'''
 # Example training data
 X_train = [
-    "Work Experience: Software Engineer at XYZ Inc. (Jan 2019 - Present) - Developed...",
+     "Work Experience: Software Engineer at XYZ Inc. (Jan 2019 - Present) - Developed...",
     "Education: Bachelor of Science in Computer Science, University of ABC (2015 - 2019)...",
     "Skills: Proficient in Python, Java, and SQL. Experience with machine learning algorithms...",
     "Work Experience: Intern at ABC Corporation (May 2018 - Aug 2018) - Assisted...",
     # Additional training examples...
-]
+    ]
+
+
 
 # Corresponding labels for each training example
 y_train = [
@@ -90,7 +91,7 @@ def classify_sections(text):
 
 # Example usage:
 
-sections = classify_sections(preprocessed_text)
+sections = classify_sections()
 
-'''
+print(sections)
 
