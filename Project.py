@@ -10,7 +10,7 @@ def extract_text_from_pdf(pdf_path):
     return text
 
 # Example usage:
-pdf_path = "/Users/muhammadibrahim/Desktop/Applications/Muhammad Ibrahim CV.pdf"
+pdf_path = "/Users/muhammadibrahim/Downloads/Blue Neutral Simple Minimalist Professional Web Developer Resume.pdf"
 unrefined_cv_text = extract_text_from_pdf(pdf_path)
 
 
@@ -28,12 +28,14 @@ def preprocess_text(text):
 # Example usage:
 text_no_extra_characters = preprocess_text(unrefined_cv_text)
 
-
+#print(text_no_extra_characters)
 
 
 import spacy
 
 nlp = spacy.load("en_core_web_sm")
+
+
 
 def extract_entities(text):
     doc = nlp(text)
@@ -42,9 +44,11 @@ def extract_entities(text):
 
 # Example usage:
 entities = extract_entities(text_no_extra_characters)
+print(entities)
 
 
 
+'''
 # Example training data
 X_train = [
      "Work Experience: Software Engineer at XYZ Inc. (Jan 2019 - Present) - Developed...",
@@ -91,7 +95,7 @@ def classify_sections(text):
 
 # Example usage:
 
-sections = classify_sections()
+sections = classify_sections(text_no_extra_characters)
 
 print(sections)
-
+'''

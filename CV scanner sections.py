@@ -2,7 +2,7 @@
 # either in text form to be put later into a pipeline and section processer
 # or in the respective sections from the get-go
 
-pdf_path = "/Users/muhammadibrahim/Desktop/Applications/Muhammad Ibrahim CV.pdf"
+pdf_path = "/Users/muhammadibrahim/Downloads/Blue Neutral Simple Minimalist Professional Web Developer Resume.pdf"
 
 import pdfplumber
 
