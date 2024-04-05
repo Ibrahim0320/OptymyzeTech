@@ -5,11 +5,11 @@ from pdfminer.high_level import extract_text
 
 
 
-cv= "/Users/muhammadibrahim/Downloads/Blue Neutral Simple Minimalist Professional Web Developer Resume.pdf"
+cv= "/Users/muhammadibrahim/Desktop/Blue Neutral Simple Minimalist Professional Web Developer Resume.pdf"
 cv2= "/Users/muhammadibrahim/Desktop/Applications/Muhammad Ibrahim CV.pdf"
 
 text_from_cv= extract_text(cv)
-print(text_from_cv)
+
 
 
 from fuzzywuzzy import process
@@ -30,6 +30,14 @@ def parse_resume_sections(text):
     sections = {}
     current_section = None
     current_content = []
+
+
+    # Extract candidate's name and contact information
+    candidate_info = text.split('\n\n')[0]  
+    # Assuming the candidate's name and contact information are in the first paragraph
+    # Add candidate's name and contact information to the sections dictionary
+    sections['candidate_info'] = candidate_info
+
 
     # Iterate through each line of the text
     for line in text.split("\n"):
@@ -67,5 +75,5 @@ def print_section(parsed_sections, section_name):
 #print_section(parsed_sections, 'language')
 
 # Print the parsed sections
-for section, content in parsed_sections.items():
-    print(f"{section}:\n{content}\n")
+#for section, content in parsed_sections.items():
+#    print(f"{section}:\n{content}\n")
