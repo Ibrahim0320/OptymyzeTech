@@ -3,6 +3,7 @@ from Working_build import *
 import sqlite3
 
 # Function to create a SQLite database and table
+
 def create_database():
     conn = sqlite3.connect('cv_database.db')
     c = conn.cursor()
@@ -18,6 +19,9 @@ def create_database():
                 )''')
     conn.commit()
     conn.close()
+
+# Call the function to create the database and the table
+create_database()
 
 # Function to insert parsed CV sections into the database
 def insert_cv_data(parsed_sections):
@@ -56,10 +60,11 @@ def iterate_over_cv_folder_extract_and_parse_and_store(folder_path):
             insert_cv_data(parsed_sections)
 
 # Call the function to create the database
-#create_database()
+'create_database()'
+
 
 # Specify the folder containing CVs
-cv_folder_path = "/Users/muhammadibrahim/Desktop/Github/Optymyze/Test"
+cv_folder_path = "Test"
 
 # Verify the path exists
 if os.path.isdir(cv_folder_path):

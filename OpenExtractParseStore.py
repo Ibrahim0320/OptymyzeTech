@@ -19,6 +19,6 @@ def iterate_over_cv_folder_extract_and_parse_and_store(folder_path):
             # Insert parsed CV sections into the SQLite database
             insert_cv_data(parsed_sections)
 
-test_folder= "/Users/muhammadibrahim/Desktop/Test"
+test_folder= "Test"
 
 

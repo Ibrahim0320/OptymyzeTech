@@ -5,7 +5,7 @@ from pdfminer.high_level import extract_text
 
 
 
-cv= "/Users/muhammadibrahim/Desktop/Blue Neutral Simple Minimalist Professional Web Developer Resume.pdf"
+cv= "Test/Blue Neutral Simple Minimalist Professional Web Developer Resume.pdf"
 cv2= "/Users/muhammadibrahim/Desktop/Applications/Muhammad Ibrahim CV.pdf"
 
 text_from_cv= extract_text(cv)
@@ -17,13 +17,12 @@ from fuzzywuzzy import process
 def parse_resume_sections(text):
     # Define section keywords
     section_keywords = [
-        "work experience", 
-        "education", 
-        "skills", 
-        "qualifications"
-        "languages", 
-        "extracurricular courses and certificates", 
-        "relevant projects"
+        "Work Experience", 
+        "Education", 
+        "Skills", 
+        "Languages", 
+        "Extracurricular Courses and Certificates", 
+        "Relevant Projects"
     ]
 
     # Initialize variables to store parsed sections
