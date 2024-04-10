@@ -9,13 +9,13 @@ def create_database():
     c = conn.cursor()
     c.execute('''CREATE TABLE IF NOT EXISTS cv_data (
                     id INTEGER PRIMARY KEY,
-                    work_experience TEXT,
-                    education TEXT,
-                    skills TEXT,
-                    qualifications TEXT,
-                    languages TEXT,
-                    extracurricular_courses TEXT,
-                    relevant_projects TEXT
+                    Candidate_Info TEXT,
+                    Work_Experience TEXT,
+                    Education TEXT,
+                    Skills TEXT,
+                    Languages TEXT,
+                    Extracurricular_Courses_and_Certificates TEXT,
+                    Relevant_Projects TEXT
                 )''')
     conn.commit()
     conn.close()
@@ -39,7 +39,7 @@ def insert_cv_data(parsed_sections):
                         Extracurricular_Courses_and_Certificates,
                         Relevant_Projects
                     ) VALUES (?, ?, ?, ?, ?, ?, ?)''',
-                    (parsed_sections.get('Candidate Info', ''),
+                    (parsed_sections.get('candidate_info', ''),
                      parsed_sections.get('Work Experience', ''),
                      parsed_sections.get('Education', ''),
                      parsed_sections.get('Skills', ''),

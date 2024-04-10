@@ -71,7 +71,7 @@ def print_section(parsed_sections, section_name):
         print(f"{section_name.capitalize()} section not found.")
 
 # Example usage:
-#print_section(parsed_sections, 'skills')
+print_section(parsed_sections, 'Candidate_Info')
 
 
 # Print the parsed sections
