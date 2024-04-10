@@ -21,7 +21,7 @@ def retrieve_job_description():
 def retrieve_candidate_data():
     conn = sqlite3.connect('/Users/muhammadibrahim/Desktop/Github/Optymyze/cv_database.db')
     c= conn.cursor()
-    c.execute('SELECT id, work_experience, skills FROM cv_data')  # Adjust feature names accordingly
+    c.execute('SELECT candidate_info, work_experience, skills FROM cv_data')  # Adjust feature names accordingly
     data = c.fetchall()
     conn.close()
 
