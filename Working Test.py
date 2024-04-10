@@ -25,26 +25,33 @@ create_database()
 
 # Function to insert parsed CV sections into the database
 def insert_cv_data(parsed_sections):
-    conn = sqlite3.connect('cv_database.db')
-    c = conn.cursor()
-    c.execute('''INSERT INTO cv_data (
-                    work_experience,
-                    education,
-                    skills,
-                    qualifications,
-                    languages,
-                    extracurricular_courses,
-                    relevant_projects
-                ) VALUES (?, ?, ?, ?, ?, ?, ?)''',
-                (parsed_sections.get('work experience', ''),
-                 parsed_sections.get('education', ''),
-                 parsed_sections.get('skills', ''),
-                 parsed_sections.get('qualifications', ''),
-                 parsed_sections.get('languages', ''),
-                 parsed_sections.get('extracurricular courses and certificates', ''),
-                 parsed_sections.get('relevant projects', '')))
-    conn.commit()
-    conn.close()
+
+
+    try:
+        conn = sqlite3.connect('cv_database.db')
+        c = conn.cursor()
+        c.execute('''INSERT INTO cv_data (
+                        Candidate_Info,
+                        Work_Experience,
+                        Education,
+                        Skills,
+                        Languages,
+                        Extracurricular_Courses_and_Certificates,
+                        Relevant_Projects
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?)''',
+                    (parsed_sections.get('Candidate Info', ''),
+                     parsed_sections.get('Work Experience', ''),
+                     parsed_sections.get('Education', ''),
+                     parsed_sections.get('Skills', ''),
+                     parsed_sections.get('Languages', ''),
+                     parsed_sections.get('Extracurricular Courses and Certificates', ''),
+                     parsed_sections.get('Relevant Projects', '')))
+        conn.commit()
+        conn.close()
+        print("Data inserted successfully.")  # Print success message
+    except sqlite3.Error as e:
+        print("Error inserting data:", e)  # Print error message if an exception occurs
+
 
 # Function to iterate through CV files in a folder
 def iterate_over_cv_folder_extract_and_parse_and_store(folder_path):

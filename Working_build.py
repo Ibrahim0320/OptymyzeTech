@@ -16,7 +16,7 @@ from fuzzywuzzy import process
 
 def parse_resume_sections(text):
     # Define section keywords
-    section_keywords = [
+    section_keywords = [ "Candidate Info",
         "Work Experience", 
         "Education", 
         "Skills", 
@@ -71,7 +71,8 @@ def print_section(parsed_sections, section_name):
         print(f"{section_name.capitalize()} section not found.")
 
 # Example usage:
-#print_section(parsed_sections, 'language')
+#print_section(parsed_sections, 'skills')
+
 
 # Print the parsed sections
 #for section, content in parsed_sections.items():
