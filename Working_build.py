@@ -13,52 +13,60 @@ text_from_cv= extract_text(cv)
 
 
 from fuzzywuzzy import process
+import traceback
 
 def parse_resume_sections(text):
-    # Define section keywords
-    section_keywords = [ "Candidate Info",
-        "Work Experience", 
-        "Education", 
-        "Skills", 
-        "Languages", 
-        "Extracurricular Courses and Certificates", 
-        "Relevant Projects"
-    ]
+    try: 
+        # Define section keywords
+        section_keywords = [
+            "Candidate Info",
+            "Work Experience", 
+            "Education", 
+            "Skills", 
+            "Languages", 
+            "Extracurricular Courses and Certificates", 
+            "Relevant Projects"
+        ]
 
-    # Initialize variables to store parsed sections
-    sections = {}
-    current_section = None
-    current_content = []
+        # Initialize variables to store parsed sections
+        sections = {}
+        current_section = None
+        current_content = []
 
+        # Extract candidate's name and contact information
+        candidate_info = text.split('\n\n')[0]  
+        # Assuming the candidate's name and contact information are in the first paragraph
+        # Add candidate's name and contact information to the sections dictionary
+        sections['candidate_info'] = candidate_info
 
-    # Extract candidate's name and contact information
-    candidate_info = text.split('\n\n')[0]  
-    # Assuming the candidate's name and contact information are in the first paragraph
-    # Add candidate's name and contact information to the sections dictionary
-    sections['candidate_info'] = candidate_info
+        # Iterate through each line of the text
+        for line in text.split("\n"):
+            # Check if the line contains a section keyword
+            match = process.extractOne(line.lower(), section_keywords)
+            if match is not None and match[1] >= 90:  # Consider a match if similarity is >= 90
+                # If a new section is encountered, store the content of the previous section
+                if current_section is not None:
+                    sections[current_section] = "\n".join(current_content)
+                # Update the current section
+                current_section = match[0]  # Use the matched keyword
+                current_content = []
+            # If the line does not contain a section keyword, append it to the current section's content
+            else:
+                if current_section is not None:
+                    current_content.append(line)
 
+        # Store the content of the last section
+        if current_section is not None:
+            sections[current_section] = "\n".join(current_content)
+        return sections
+    except Exception as e:
+        print(f"Error parsing CV: {e}")
+        print(traceback.format_exc())  # Print traceback for more detailed error information
+        raise  # Re-raise the exception to propagate it further
 
-    # Iterate through each line of the text
-    for line in text.split("\n"):
-        # Check if the line contains a section keyword
-        match = process.extractOne(line.lower(), section_keywords)
-        if match is not None and match[1] >= 90:  # Consider a match if similarity is >= 90
-            # If a new section is encountered, store the content of the previous section
-            if current_section is not None:
-                sections[current_section] = "\n".join(current_content)
-            # Update the current section
-            current_section = match[0]  # Use the matched keyword
-            current_content = []
-        # If the line does not contain a section keyword, append it to the current section's content
-        else:
-            if current_section is not None:
-                current_content.append(line)
+# Example usage:
+# parsed_sections = parse_resume_sections(resume_text)
 
-    # Store the content of the last section
-    if current_section is not None:
-        sections[current_section] = "\n".join(current_content)
-
-    return sections
 
 # Example usage:
 
@@ -70,8 +78,13 @@ def print_section(parsed_sections, section_name):
     else:
         print(f"{section_name.capitalize()} section not found.")
 
+
+
+
 # Example usage:
 print_section(parsed_sections, 'Candidate_Info')
+
+
 
 
 # Print the parsed sections
