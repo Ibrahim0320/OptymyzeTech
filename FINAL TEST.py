@@ -1,6 +1,22 @@
 from Working_code import *
 
 
+'''
+def clear_database():
+    try:
+        conn = sqlite3.connect('cv_database.db')
+        c = conn.cursor()
+        c.execute("DELETE FROM cv_data")  # Delete all rows from the table
+        conn.commit()
+        conn.close()
+        print("Data cleared successfully.")  # Print success message
+    except sqlite3.Error as e:
+        print("Error clearing data:", e)  # Print error message if an exception occurs
+
+# Call the function to clear the database
+clear_database()
+'''
+
 # Specify the folder containing CVs
 cv_folder_path = "Test"
 
@@ -50,4 +66,5 @@ for candidate_info, score in ranked_candidates:
     # Extract the name from the candidate_info
     candidate_name = candidate_info.split('\n')[0]
     print(f"Candidate Name: {candidate_name}, Similarity Score: {score}")
+
 
