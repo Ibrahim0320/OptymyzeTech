@@ -15,7 +15,7 @@ def retrieve_candidate_data():
     conn.close()
 
     candidate_ids = [row[0] for row in data]
-    candidate_features= [(row[1], row[2]) for row in data]  # Extract skills and experience
+    candidate_features= [row[1:] for row in data]  # Extract skills and experience
     return candidate_ids, candidate_features
 
 candidate_ids, candidate_features = retrieve_candidate_data()
@@ -83,7 +83,7 @@ If you're a data enthusiast looking for an exciting opportunity, apply now!
 '''
 
 # Preprocess job description
-job_description = preprocess_text(job_description)
+#job_description = preprocess_text(job_description)
 # Retrieve candidate features from the database
 candidate_ids, candidate_features = retrieve_candidate_data()
 # Calculate similarity between job description and candidate features
