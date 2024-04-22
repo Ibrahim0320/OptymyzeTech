@@ -5,7 +5,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 from Cv_to_req_matcher import *
 
 # Load Google's pre-trained Word2Vec model.
-model = KeyedVectors.load_word2vec_format('/Users/muhammadibrahim/Desktop/Downloaded Extensions/GoogleNews-vectors-negative300.bin', binary=True)
+model = KeyedVectors.load_word2vec_format()
 
 def document_vector(doc):
     """Create document vectors by averaging word vectors. Remove out-of-vocabulary words."""

@@ -2,14 +2,13 @@
 # upload the relevant CV pdf files onto GPT4 in order to find out how GPT4 ranks these potential candidates
 
 import os
-import requests
 import PyPDF2
-
-
+import openai
 
 # CONSTANTS
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 FOLDER_PATH = "Test"
-NAMES = ["Hamza bin Saleem", "Muhammad Usman", "Umer Ehsan"]  # Names you're looking for
+NAMES = ["Hamza bin Saleem", "Muhammad Usman", "Umer Ehsan"]
 
 def extract_text_from_pdf(pdf_path):
     """Extracts text from a PDF file."""
@@ -60,19 +59,15 @@ of the most suitable candidates and why:
 
 
 def analyze_with_gpt4(text):
-    headers = {
-        'Authorization': f'Bearer {OPENAI_API_KEY}',
-        'Content-Type': 'application/json'
-    }
-    data = {
-        'model': 'GPT-4',  # Confirm this model name from OpenAI's API documentation
-        'messages': [
-            {'role': 'system', 'content': Assignment},
-            {'role': 'user', 'content': text}
+    """Analyzes CV text using OpenAI GPT-4."""
+    response = openai.ChatCompletion.create(
+        model="gpt-4",
+        messages=[
+            {"role": "system", "content": Assignment},
+            {"role": "user", "content": text}
         ]
-    }
-    response = requests.post('https://api.openai.com/v1/chat/completions', headers=headers, json=data)
-    return response.json()
+    )
+    return response
 
 def main():
     cv_files = find_cv_files(NAMES, FOLDER_PATH)
@@ -83,6 +78,7 @@ def main():
             print(result)  # Printing each candidate's analysis results
     else:
         print("No CVs found for the given names.")
+
 
 if __name__ == "__main__":
     main()
