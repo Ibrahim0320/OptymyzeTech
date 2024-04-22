@@ -8,7 +8,7 @@ import re
 
 
 def retrieve_candidate_data():
-    conn = sqlite3.connect('/Users/muhammadibrahim/Desktop/Github/Optymyze/cv_database.db')
+    conn = sqlite3.connect('Successful Code/cv_database.db')
     c= conn.cursor()
     c.execute('SELECT candidate_info, work_experience, skills, education, extracurricular_courses_and_certificates, relevant_projects FROM cv_data')  # Adjust feature names accordingly
     data = c.fetchall()
