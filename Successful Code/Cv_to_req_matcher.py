@@ -63,6 +63,7 @@ def calculate_similarity(job_description, candidate_features):
 
 
 
+
 def candidate_ranking(candidate_ids, similarities):
     ranked_candidates = sorted(zip(candidate_ids, similarities), key=lambda x: x[1], reverse=True)
     return ranked_candidates
@@ -89,6 +90,7 @@ Excellent communication skills in English, both verbal and written, are essentia
 that stand above market standards.Annual bonuses reflecting both personal and company performance.A generous learning 
 and development budget to support your professional growth. 25 days of paid leave annually to ensure work-life balance.
 '''
+
 
 # Preprocess job description
 job_description = preprocess_text(job_description)

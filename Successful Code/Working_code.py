@@ -5,18 +5,6 @@ import re
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 # Function to create a SQLite database and table
 
 def create_database():
