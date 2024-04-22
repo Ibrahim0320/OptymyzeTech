@@ -5,9 +5,9 @@ import os
 import requests
 import PyPDF2
 
-# Constants
-OPENAI_API_ENDPOINT = "https://api.openai.com/v1/chat/completions"  # OpenAI GPT-4 API endpoint
-OPENAI_API_KEY = "sk-proj-mKY2RwX6ugxJ2gwfqFA2T3BlbkFJlpWrV5O8iww5V2w4iFaI"  # Securely handle your API key
+
+
+# CONSTANTS
 FOLDER_PATH = "Test"
 NAMES = ["Hamza bin Saleem", "Muhammad Usman", "Umer Ehsan"]  # Names you're looking for
 
@@ -32,18 +32,46 @@ def find_cv_files(names, folder_path):
                     cv_files.append(os.path.join(root, file))
     return cv_files
 
+
+
+
+Assignment= '''
+Here is a job description. Senior Quality Assurance Engineer We are on the hunt for an exceptional Senior QA Engineer to join and elevate our team.
+This role is perfect for someone who is not just looking for a job but an opportunity to make a significant impact. 
+Key Responsibilities: Develop, enhance, and maintain both front-end and back-end automated testing frameworks using 
+cutting-edge tools and technologies, alongside conducting manual testing when necessary.Take charge of our CI/CD 
+processes, crafting a comprehensive test strategy, and embedding quality standards within automated pipelines.
+Define, track, and optimize quality and performance metrics for our applications to ensure they meet our high standards.
+Lead by example, reviewing test procedures and mentoring team members on best practices in automated testing. 
+Serve as the linchpin for quality control, ensuring application changes meet our rigorous standards for excellence.
+Requirements: Proven track record as a Quality Assurance Engineer, boasting a deep understanding of automated testing
+frameworks for both front-end (e.g., Playwright) and back-end (e.g., xUnit) development. 
+Experience with AWS DevOps, cloud services, and an ability to seamlessly integrate test cases into comprehensive 
+suites for automation.Familiarity with test design, methodologies, and tools, with ISTQB or similar certifications
+being a huge plus. A strong team player with outstanding analytical abilities, you pride yourself on being 
+independent, solution-focused, and proactive.Excellent communication skills in English, both verbal and written,
+are essential. What We Offer: Competitive salaries that stand above market standards.Annual bonuses reflecting
+both personal and company performance.A generous learning and development budget to support your professional
+growth. 25 days of paid leave annually to ensure work-life balance.
+
+I want you to take the following text from the potential candidates' CVs. Return to me a ranking 
+of the most suitable candidates and why:
+'''
+
+
 def analyze_with_gpt4(text):
-    """Sends extracted text to GPT-4 and gets analysis."""
     headers = {
-        "Authorization": f"Bearer {OPENAI_API_KEY}",
-        "Content-Type": "application/json"
+        'Authorization': f'Bearer {OPENAI_API_KEY}',
+        'Content-Type': 'application/json'
     }
     data = {
-        "model": "gpt-4",
-        "messages": [{"role": "system", "content": "Analyze the following CV:"},
-                     {"role": "user", "content": text}]
+        'model': 'GPT-4',  # Confirm this model name from OpenAI's API documentation
+        'messages': [
+            {'role': 'system', 'content': Assignment},
+            {'role': 'user', 'content': text}
+        ]
     }
-    response = requests.post(OPENAI_API_ENDPOINT, headers=headers, json=data)
+    response = requests.post('https://api.openai.com/v1/chat/completions', headers=headers, json=data)
     return response.json()
 
 def main():
