@@ -1,8 +1,9 @@
 from Working_code import *
 
 
+
 '''
-def clear_database():
+def clear_database()
     try:
         conn = sqlite3.connect('cv_database.db')
         c = conn.cursor()
