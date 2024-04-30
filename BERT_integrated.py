@@ -5,6 +5,15 @@ import sqlite3
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from transformers import BertTokenizer, BertModel
+import nltk
+from nltk.corpus import stopwords
+from nltk.stem import WordNetLemmatizer
+import string
+
+# Ensure you have the necessary NLTK data
+nltk.download('stopwords')
+nltk.download('wordnet')
+nltk.download('omw-1.4')
 
 def retrieve_candidate_data():
     conn = sqlite3.connect('cv_database.db')
@@ -16,19 +25,33 @@ def retrieve_candidate_data():
     candidate_features = [row[1:] for row in data]
     return candidate_ids, candidate_features
 
+
 def preprocess_text(text):
-    text = text.lower().replace("'", "").replace("-", " ")
-    text = ''.join([char for char in text if char.isalnum() or char.isspace()])
-    return ' '.join(text.split())
+    # Convert text to lowercase
+    text = text.lower()
+    # Remove punctuation
+    text = ''.join([char for char in text if char not in string.punctuation])
+    # Tokenize text
+    words = text.split()
+    # Remove stopwords
+    stop_words = set(stopwords.words('english'))
+    words = [word for word in words if word not in stop_words]
+    # Lemmatize words
+    lemmatizer = WordNetLemmatizer()
+    words = [lemmatizer.lemmatize(word) for word in words]
+    # Join words to reform the sentence
+    return ' '.join(words)
 
 def load_model_and_tokenizer(model_name='bert-base-cased'):
     tokenizer = BertTokenizer.from_pretrained(model_name)
     model = BertModel.from_pretrained(model_name)
     return tokenizer, model
 
-def encode_text(tokenizer, model, text):
+
+def encode_text_bert(tokenizer, model, text):
     inputs = tokenizer(text, return_tensors="pt", max_length=512, truncation=True, padding=True)
     outputs = model(**inputs)
+    # Return the mean of the last hidden state to represent the document
     return outputs.last_hidden_state.mean(dim=1).squeeze().detach().numpy()
 
 def calculate_similarity_tfidf(job_description, candidate_features):
@@ -38,9 +61,10 @@ def calculate_similarity_tfidf(job_description, candidate_features):
     return cosine_similarity(job_vector, candidate_vectors).flatten()
 
 def calculate_similarity_bert(tokenizer, model, job_description, candidate_features):
-    job_embed = encode_text(tokenizer, model, job_description)
-    candidate_embeddings = np.array([encode_text(tokenizer, model, feature) for feature in candidate_features])
-    return cosine_similarity([job_embed], candidate_embeddings).flatten()
+    job_embed = encode_text_bert(tokenizer, model, job_description)
+    candidate_embeddings = np.array([encode_text_bert(tokenizer, model, feature) for feature in candidate_features])
+    similarities = cosine_similarity([job_embed], candidate_embeddings).flatten()
+    return similarities
 
 # Main execution
 job_description= '''
@@ -63,26 +87,36 @@ and development budget to support your professional growth. 25 days of paid leav
 '''
 
 
-tokenizer, model = load_model_and_tokenizer()
-candidate_ids, candidate_features = retrieve_candidate_data()
-processed_features = [preprocess_text(' '.join(feature)) for feature in candidate_features]
-
-# TF-IDF Similarity
-tfidf_scores = calculate_similarity_tfidf(job_description, processed_features)
-
-# BERT Similarity
-bert_scores = calculate_similarity_bert(tokenizer, model, job_description, processed_features)
-
-# Combine and rank results (simple average for demonstration)
-# Example: BERT scores are considered more important
-weight_for_bert = 0.7
-weight_for_tfidf = 0.3
-final_scores = weight_for_bert * bert_scores + weight_for_tfidf * tfidf_scores
 
 
-ranked_candidates = sorted(zip(candidate_ids, final_scores), key=lambda x: x[1], reverse=True)
 
 
-# Output ranked candidates
-for candidate_id, score in ranked_candidates:
-    print(f"Candidate ID: {candidate_id}, Combined Similarity Score: {score}")
+def main(job_description):
+    # Load model and tokenizer for BERT
+    tokenizer, model = load_model_and_tokenizer()
+
+    # Retrieve and preprocess candidate data
+    candidate_ids, candidate_features = retrieve_candidate_data()
+    processed_features = [preprocess_text(' '.join(feature)) for feature in candidate_features]
+
+    # Compute TF-IDF scores
+    tfidf_scores = calculate_similarity_tfidf(job_description, processed_features)
+
+    # Compute BERT scores
+    bert_scores = calculate_similarity_bert(tokenizer, model, job_description, processed_features)
+
+    # Combine scores using a weighted average
+    weight_for_bert = 0.7  # Adjust as needed
+    weight_for_tfidf = 0.3  # Adjust as needed
+    final_scores = weight_for_bert * bert_scores + weight_for_tfidf * tfidf_scores
+
+    # Rank candidates
+    ranked_candidates = sorted(zip(candidate_ids, final_scores), key=lambda x: x[1], reverse=True)
+
+    # Print the top candidates
+    for candidate_id, score in ranked_candidates[:10]:  # Adjust the slice as needed
+        print(f"Candidate ID: {candidate_id}, Combined Similarity Score: {score}")
+
+# Example job description
+
+main(job_description)
