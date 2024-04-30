@@ -6,7 +6,7 @@ import PyPDF2
 import openai
 
 # CONSTANTS
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+OPENAI_API_KEY = 'sapi-key here'
 FOLDER_PATH = "Test"
 NAMES = ["Hamza bin Saleem", "Muhammad Usman", "Umer Ehsan"]
 
