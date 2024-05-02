@@ -2,8 +2,9 @@
 import os
 import requests
 
+'''
 def query_gpt4(prompt):
-    api_key = os.getenv()
+    api_key = os.getenv('')
     if not api_key:
         print("API key not found. Please set the OPENAI_API_KEY environment variable.")
         return None
@@ -13,9 +14,9 @@ def query_gpt4(prompt):
         'Authorization': f'Bearer {api_key}'
     }
     data = {
-    "model": "gpt-3.5-turbo",  # Replace "gpt-4" with an available model like "text-davinci-003"
+    "model": "gpt-4",  # Replace "gpt-4" with an available model like "text-davinci-003"
     "prompt": prompt,
-    "max_tokens": 150,
+    "max_tokens": 750,
     "temperature": 0.7
     }
 
@@ -39,5 +40,29 @@ prompt = "Translate the following English text to French: 'Hello, how are you?'"
 response = query_gpt4(prompt)
 print("Response from GPT-4:", response if response else "No response received.")
 
+'''
 
+import openai
+import os
+
+# Retrieve the API key from the environment variable
+api_key = 
+
+# Check if the API key was retrieved successfully
+if api_key is None:
+    raise ValueError("API key not found. Please set the OPEN_KEY_API environment variable.")
+
+# Initialize the OpenAI client
+openai.api_key = api_key
+
+
+# Create a chat completion
+response = openai.Completion.create(
+    model="gpt-4",
+    messages=[{"role": "user", "content": "Say this is a test"}]
+)
+
+# Print the response
+if response:
+    print(response['choices'][0]['message']['content'])
 
