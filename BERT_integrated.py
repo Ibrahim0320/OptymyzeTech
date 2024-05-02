@@ -106,8 +106,8 @@ def main(job_description):
     bert_scores = calculate_similarity_bert(tokenizer, model, job_description, processed_features)
 
     # Combine scores using a weighted average
-    weight_for_bert = 0.7  # Adjust as needed
-    weight_for_tfidf = 0.3  # Adjust as needed
+    weight_for_bert = 0.9 # Adjust as needed
+    weight_for_tfidf = 0.1  # Adjust as needed
     final_scores = weight_for_bert * bert_scores + weight_for_tfidf * tfidf_scores
 
     # Rank candidates
