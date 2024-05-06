@@ -16,7 +16,7 @@ nltk.download('wordnet')
 nltk.download('omw-1.4')
 
 def retrieve_candidate_data():
-    conn = sqlite3.connect('cv_database.db')
+    conn = sqlite3.connect('BERT int/cv_database.db')
     c = conn.cursor()
     c.execute('SELECT Candidate_Info, Professional_Background, Education_Skills, Extracurriculars_Certificates FROM cv_data')
     data = c.fetchall()
@@ -106,8 +106,8 @@ def main(job_description):
     bert_scores = calculate_similarity_bert(tokenizer, model, job_description, processed_features)
 
     # Combine scores using a weighted average
-    weight_for_bert = 0.9 # Adjust as needed
-    weight_for_tfidf = 0.1  # Adjust as needed
+    weight_for_bert = 0.7 # Adjust as needed
+    weight_for_tfidf = 0.3  # Adjust as needed
     final_scores = weight_for_bert * bert_scores + weight_for_tfidf * tfidf_scores
 
     # Rank candidates
@@ -120,3 +120,5 @@ def main(job_description):
 # Example job description
 
 main(job_description)
+
+
