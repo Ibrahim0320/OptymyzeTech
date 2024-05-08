@@ -1,68 +1,23 @@
 # Testing different stuff on the gpt API
-import os
 import requests
+import json
 
+url = "https://api.openai.com/v1/completions"
 
-def query_gpt4(prompt):
-    api_key = ''
-    if not api_key:
-        print("API key not found. Please set the OPENAI_API_KEY environment variable.")
-        return None
-
-    headers = {
-        'Content-Type': 'application/json',
-        'Authorization': f'Bearer {api_key}'
+payload = json.dumps({
+  "model": "gpt-3.5-turbo",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Translate the following sentence into French: 'My name is Ben'"
     }
-    data = {
-    "model": "gpt-3.5",  # Replace "gpt-4" with an available model like "text-davinci-003"
-    "prompt": prompt,
-    "max_tokens": 750,
-    "temperature": 0.7
-    }
+  ]
+})
+headers = {
+  'Cookie': '_cfuvid=7FWlKxWBzVV8ukB8LTNt25PKGtMRIUUTR3bzaBd30PU-1715171900178-0.0.1.1-604800000; __cf_bm=hH4B_Dk6qGKXCytrSu3p4XbHpCPjOuIUJyjyx1J3vuQ-1715173799-1.0.1.1-QIsSXcnWfPCNKLCwnkFOLH8QXEPHXaEPIBXNSR29regrwseJM38GQ1zqCc9k8aTe2ay.q0l_eyKx9AMyfUE6yQ',
+  'Content-Type': 'application/json'
+}
 
-    try:
-        print("Sending request to OpenAI...")
-        response = requests.post('https://api.openai.com/v1/completions', headers=headers, json=data)
-        response.raise_for_status()  # Raises an exception for 4XX/5XX errors
-        print("Request successful, processing response...")
-        json_response = response.json()
-        print("JSON Response:", json_response)
-        return json_response['choices'][0]['text']
-    except requests.exceptions.RequestException as e:
-        print(f'HTTP Request failed: {e}')
-        if hasattr(e, 'response'):
-            print("Status Code:", e.response.status_code)
-            print("Error Response:", e.response.text)
-        return None
+response = requests.request("POST", url, headers=headers, data=payload)
 
-# Example usage
-prompt = "Translate the following English text to French: 'Hello, how are you?'"
-response = query_gpt4(prompt)
-print("Response from GPT-4:", response if response else "No response received.")
-
-
-'''
-import openai
-import os
-
-# Retrieve the API key from the environment variable
-api_key = ''
-
-# Check if the API key was retrieved successfully
-if api_key is None:
-    raise ValueError("API key not found. Please set the OPEN_KEY_API environment variable.")
-
-# Initialize the OpenAI client
-openai.api_key = api_key
-
-
-# Create a chat completion
-response = openai.Completion.create(
-    model="gpt-4",
-    messages=[{"role": "user", "content": "Say this is a test"}]
-)
-
-# Print the response
-if response:
-    print(response['choices'][0]['message']['content'])
-'''
+print(response.text)
