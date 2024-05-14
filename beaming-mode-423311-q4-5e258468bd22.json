@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "beaming-mode-423311-q4",
+  "private_key_id": "5e258468bd22a60b47e2c90731105f7641c262cd",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDiUygVwqsQhLSv\nasxt8v7PJD1lpLu1gTT6t6jBM28+QEHqo7BluHWkwk1Oo9iAfcnrA7FdFRlHl01v\nChrjHDQhRzfSZ3pUfi/4Bss4/zUcuxfABRZbq5WYuPZI1f0gA+5drxLUkGS6/HR+\ndu9un/8iYodsu/zU3LU4XudI2CN6/KXCqAXzn134K9CXonoyHF+W/hBqTR5hGeXn\nXKTpsJ3r7ZZBshJ1zbDUQex4nyluvcQPS84NerRHvP1ItB+nyRqaitrbiDPo6RSK\n/UaAN7Pn8G2GZo+pzo3R/bVQUoqHEXz0q9VXYXUt2yEZm5FW8ddYkNvmM+A9kLtM\nOP10b859AgMBAAECggEAN/T+bq7kU5+z+sEJjU+sj3Ny2Kwrmts4yZpaF3aLlRUX\nFxfkl6nNMHC3428gKtiu8TPHCPAcAXbXttIFRsyk2Ot+Uj+yX6yZWJX5bfyvWYyq\neRfo6L5aLNniTqzVujIun6wXGEYhGZgsh04JsczOLGa2+/vYrZpqFedlAL4ru46/\nnDXGOlrutFEIK+zjEiurAa1XzpFF3aXQCY6UOefo7EQ6cbwgeksozftriy0SJctg\nhOiHHukssrdTMuleTzLBqNGSEUZf7pg+LHztXNS6LVM66ZEQ/0swpjXIvFpJVbT1\nTKK597X+M1Na3fD2CRETy6S28iyU3dFWoam8zhaQkwKBgQD7PUs8Z7bVzrNOr1GH\n/+r24KtIkZS28BoMF15G+7TerTeFxvJOZvXvSpy8gHs8WnRzL0ZnpeK7mzKCNo0K\nO4e6a2/MdFLbqJ23RMe37dXSeLT+dCYIboCTZy9ahIj3Gph8d+Ld365Knc+Aik/s\nWvJH2ikeQYyYS9EGuwFwQqEMHwKBgQDmnQHvkJ0pWxeCY9kcPIebGxGD10gGxKsc\nE2YBFjKesC9+GhDNwoX2dlfZwJjRdOvBwTxjX0lciJ0P0LZAUPYijPrkJKPVCFba\nmsGaI/ok1Rse/TVDNACig0mqytrbaYeHbv/8OV2FXuC809WiQC1lUJBp/zCC0C42\nb3rtV6wR4wKBgDJWnpt0wFpodt6+G9ze9uoOK+N3X8+jneRsTjR0vFGdbTF9ohD5\nai9OyMawC4EVMp3djAK6Zwpl1yHl4i55rQE6A4V4jR171FXjDw0YNy5bhxAwn2oz\nEcn287L0OSkhiAnwT2FbLuW+ZtP/YnId6stgt7pbMdtV3YS2tVwTzYbLAoGAfZgM\nsdfkf91oVE7kswgUIlj/lPnt9CGvvr6h0v2v29TASMERXb4PD0csWR8XGxu+Oetv\nY/9FCOwt/asBVs3A/tgg25dI0oCULMITpkrptJ2LA7mLBGqR3e/6ctW/k7dJZG0D\nZO4pDLW7V5tWweKJ1p+lxtSAKv4N7P+Rxyj0QVkCgYEAuRelVeeMU5NSsR28nTTq\nyAyxPgAx61pFVOd/WABgWLxxuhowfnNMKbk4mASvK25V9EJJ0kNq4/FhY2zCr+/y\n9gunCEE/ssuxnXKwKYYEAajYE+v2r3lKo7/gABweaoUyTsyBpBBamaaheT/iNZfj\nGQr5HmhG8KRc+jTIv8+MY6g=\n-----END PRIVATE KEY-----\n",
+  "client_email": "cv-parser@beaming-mode-423311-q4.iam.gserviceaccount.com",
+  "client_id": "102496507267679060457",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/cv-parser%40beaming-mode-423311-q4.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
