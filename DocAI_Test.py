@@ -6,9 +6,11 @@ import re
 import sqlite3
 from google.oauth2 import service_account
 
-import os
-from google.cloud import documentai_v1 as documentai
-from google.oauth2 import service_account
+import spacy
+
+# Load the NLP model
+nlp = spacy.load("en_core_web_sm")  # or a more complex model like "en_core_web_lg"
+
 
 def get_client():
     credentials_path = 'beaming-mode-423311-q4-5e258468bd22.json'
@@ -28,26 +30,41 @@ def get_files_from_folder(folder_path):
     return files
 
 def parse_cv(file_path, client, processor_id):
-    name = f'projects/beaming-mode-423311-q4/locations/eu/processors/821b61a87ee4f1a3'
+    # Ensure the location is 'eu' as your processor is hosted in the European region
+    name = 'projects/beaming-mode-423311-q4/locations/us/processors/a43e3567d88eedc2'
     with open(file_path, "rb") as f:
         content = f.read()
+
     document = {"content": content, "mime_type": "application/pdf"}
     request = {"name": name, "raw_document": document}
     result = client.process_document(request=request)
-    return extract_information(result.document)
+    return extract_nlp_information(result.document)
 
-def extract_information(document):
-    text_content = ' '.join([layout.text for page in document.pages for layout in page.paragraphs])
+
+
+def extract_nlp_information(text):
+    doc = nlp(text)
+    # Extract entities
+    name = next((ent.text for ent in doc.ents if ent.label_ == "PERSON"), None)
+    emails = [ent.text for ent in doc.ents if ent.label_ == "EMAIL"]
+    phones = [ent.text for ent in doc.ents if ent.label_ == "PHONE"]
+    skills = [ent.text for ent in doc.ents if ent.label_ == "SKILL"]
+    education = [ent.text for ent in doc.ents if ent.label_ == "ORG" and "university" in ent.text.lower()]
+
     return {
-        "Name": extract_name(text_content),
-        "Email": extract_email(text_content),
-        "Phone": extract_phone(text_content),
-        "Work Experience": extract_work_experience(text_content),
-        "Projects": extract_projects(text_content),
-        "Education": extract_education(text_content),
-        "Skills": extract_skills(text_content),
-        "Summary": text_content[:200]
+        "Name": name,
+        "Emails": emails,
+        "Phones": phones,
+        "Skills": skills,
+        "Education": education
     }
+
+def get_paragraph_text(paragraph, document):
+    # Extract text based on text anchors
+    start_index = paragraph.layout.text_anchor.text_segments[0].start_index
+    end_index = paragraph.layout.text_anchor.text_segments[0].end_index
+    return document.text[start_index:end_index]
+
 
 
 def extract_email(text):
@@ -111,10 +128,10 @@ def insert_candidate(candidate):
     conn.close()
 
 def main():
-    folder_path = 'Test'
+    folder_path = 'Test1'
     files = get_files_from_folder(folder_path)
     client = get_client()
-    processor_id = '821b61a87ee4f1a3'  # Update this
+    processor_id = 'a43e3567d88eedc2'  # Update this
 
     create_db()
 
