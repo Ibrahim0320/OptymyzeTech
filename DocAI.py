@@ -28,7 +28,7 @@ def get_files_from_folder(folder_path):
     return files
 
 def parse_cv(file_path, client, processor_id):
-    name = f'projects/beaming-mode-423311-q4/locations/us/processors/821b61a87ee4f1a3'
+    name = f'projects/beaming-mode-423311-q4/locations/eu/processors/821b61a87ee4f1a3'
     with open(file_path, "rb") as f:
         content = f.read()
     document = {"content": content, "mime_type": "application/pdf"}
