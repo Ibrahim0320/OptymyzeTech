@@ -13,7 +13,7 @@ client = get_client()
 
 
 def process_document(file_path, client, processor_id):
-    name = f'projects/your-project-id/locations/eu/processors/{processor_id}'
+    name = f'projects/beaming-mode-423311-q4/locations/us/processors/9e0288e87d2654f5'
 
     # Read the file into memory
     with open(file_path, "rb") as f:
@@ -46,7 +46,7 @@ def process_document(file_path, client, processor_id):
 
 def main():
     processor_id = '9e0288e87d2654f5'
-    file_path = 'Test1/Blue Neutral Simple Minimalist Professional Web Developer Resume.pdf'
+    file_path = 'Test/Waqar Anwar - QA Automation Engineer - CV.pdf'
     client = get_client()
     process_document(file_path, client, processor_id)
 
