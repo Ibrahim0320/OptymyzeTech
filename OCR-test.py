@@ -11,26 +11,34 @@ nlp = spacy.load("en_core_web_sm")
 def setup_database():
     with sqlite3.connect('InfoDatabase.db') as conn:
         c = conn.cursor()
-        # Create tables without spaces in names
-        c.execute('CREATE TABLE IF NOT EXISTS Candidates (id INTEGER PRIMARY KEY, name TEXT, email TEXT)')
-        c.execute('CREATE TABLE IF NOT EXISTS Education (id INTEGER PRIMARY KEY, candidate_id INTEGER, details TEXT)')
-        c.execute('CREATE TABLE IF NOT EXISTS WorkExperience (id INTEGER PRIMARY KEY, candidate_id INTEGER, details TEXT)')
-        c.execute('CREATE TABLE IF NOT EXISTS Skills (id INTEGER PRIMARY KEY, candidate_id INTEGER, details TEXT)')
-        c.execute('CREATE TABLE IF NOT EXISTS Extracurriculars (id INTEGER PRIMARY KEY, candidate_id INTEGER, details TEXT)')
+        # Create a single table with columns for each type of information
+        c.execute('''
+            CREATE TABLE IF NOT EXISTS Candidates (
+                id INTEGER PRIMARY KEY,
+                name TEXT,
+                email TEXT,
+                work_experience TEXT,
+                education TEXT,
+                skills TEXT,
+                extracurriculars TEXT
+            )
+        ''')
 
 def insert_data(candidate_info):
     with sqlite3.connect('InfoDatabase.db') as conn:
         c = conn.cursor()
-
-        # Insert candidate basic info and get the candidate_id
-        c.execute('INSERT INTO Candidates (name, email) VALUES (?, ?)', (candidate_info['Name'], candidate_info['Email']))
-        candidate_id = c.lastrowid
-
-        # Insert details for other sections
-        for section in ['WorkExperience', 'Education', 'Skills', 'Extracurriculars']:
-            for item in candidate_info[section]:
-                formatted_section = section  # Since we're using consistent naming, no need to reformat
-                c.execute(f'INSERT INTO {formatted_section} (candidate_id, details) VALUES (?, ?)', (candidate_id, item))
+        # Insert all candidate information into the Candidates table
+        c.execute('''
+            INSERT INTO Candidates (name, email, work_experience, education, skills, extracurriculars) 
+            VALUES (?, ?, ?, ?, ?, ?)
+        ''', (
+            candidate_info['Name'],
+            candidate_info['Email'],
+            "\n".join(candidate_info['WorkExperience']),
+            "\n".join(candidate_info['Education']),
+            "\n".join(candidate_info['Skills']),
+            "\n".join(candidate_info['Extracurriculars'])
+        ))
 
 def convert_pdf_to_text(pdf_path):
     try:
