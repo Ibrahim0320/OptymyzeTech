@@ -5,7 +5,10 @@ import pdfplumber
 from docx import Document
 import openai
 from sklearn.metrics.pairwise import cosine_similarity
+import requests
+import json
 import numpy as np
+import time
 
 
 def read_text_from_file(file_path):
@@ -30,13 +33,45 @@ def read_cvs(folder_path):
 
 
 
-def generate_embeddings(texts):
-    openai.api_key = 'your-api-key'
-    response = openai.Embedding.create(
-        input=texts,
-        model="text-embedding-ada-002"
-    )
-    return [embedding['embedding'] for embedding in response['data']]
+
+
+
+def get_embeddings(texts, model="text-embedding-ada-002", retries=5, retry_delay=20):
+    api_key = ''
+    if not api_key:
+        print("API key not found. Please set the OPENAI_API_KEY environment variable.")
+        return None
+
+    headers = {
+        'Authorization': f'Bearer {api_key}',
+        'Content-Type': 'application/json'
+    }
+    url = "https://api.openai.com/v1/embeddings"
+
+    responses = []
+    for text in texts:
+        payload = json.dumps({
+            "input": text,
+            "model": model
+        })
+
+        for attempt in range(retries):
+            response = requests.post(url, headers=headers, data=payload)
+            if response.status_code == 200:
+                embedding = np.array(response.json()['data'][0]['embedding'])
+                responses.append(embedding)
+                break
+            elif response.status_code == 429:
+                print(f"Rate limit exceeded, retrying in {retry_delay} seconds...")
+                time.sleep(retry_delay)  # Respect the Retry-After header if provided by the API
+            else:
+                print(f"Error {response.status_code}: {response.text}")
+                responses.append(None)
+                break
+    
+    return responses
+
+
 
 
 def calculate_similarity(job_embed, cv_embeddings):
@@ -49,7 +84,11 @@ def main(folder_path, job_description):
     
     # Generate embeddings for the job description and CVs
     texts = [job_description] + list(cvs.values())
-    embeddings = generate_embeddings(texts)
+    embeddings = get_embeddings(texts)
+    
+    if any(embed is None for embed in embeddings):
+        print("Failed to retrieve one or more embeddings.")
+        return
     
     # Job description embedding is the first one, rest are CVs
     job_embed = embeddings[0]
@@ -62,8 +101,10 @@ def main(folder_path, job_description):
     for (cv_name, score) in zip(cvs.keys(), similarities[0]):
         print(f"CV: {cv_name}, Similarity Score: {score}")
 
+
+
 # Example usage
-folder_path = 'Test1'
+folder_path = 'Test'
 
 job_description= '''
 Senior Quality Assurance Engineer We are on the hunt for an exceptional Senior QA Engineer to join and elevate our team. 
