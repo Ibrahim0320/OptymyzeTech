@@ -3,7 +3,6 @@
 import os
 import pdfplumber
 from docx import Document
-import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from transformers import BertTokenizer, BertModel
@@ -11,6 +10,7 @@ import nltk
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 import string
+import shutil
 
 # Load BERT model and tokenizer once
 tokenizer = BertTokenizer.from_pretrained('bert-base-cased')
@@ -59,6 +59,9 @@ def calculate_similarity_bert(job_embed, candidate_embeddings):
 
 
 
+import os
+import shutil
+
 def main(job_description, folder_path):
     candidates = retrieve_candidate_texts(folder_path)
     processed_features = [preprocess_text(text) for _, text in candidates]
@@ -93,22 +96,29 @@ def main(job_description, folder_path):
     # Select candidates within the top 10% score range
     relevant_cvs = [candidate for candidate in ranked_candidates if candidate[1] >= score_threshold]
 
-    # Print all candidates with index
-    print("All Ranked Candidates:")
-    for index, (file_name, score) in enumerate(ranked_candidates, start=1):
-        print(f"{index}. {file_name}: Combined Similarity Score: {score}")
+    # Create a new folder for top candidates' CVs
+    top_cv_folder = os.path.join(folder_path, "Top_CVs")
+    if not os.path.exists(top_cv_folder):
+        os.makedirs(top_cv_folder)
 
-    print(f"\nTotal number of candidates: {len(ranked_candidates)}")
+    # Copy relevant CV files to the new folder
+    for file_name, _ in relevant_cvs:
+        src_path = os.path.join(folder_path, file_name)
+        dest_path = os.path.join(top_cv_folder, file_name)
+        shutil.copy2(src_path, dest_path)  # copy2 preserves metadata
 
-    # Print relevant CVs with index
+    # Display results
     print("\nTop 10% Score Range Relevant CVs:")
     for index, (file_name, score) in enumerate(relevant_cvs, start=1):
         print(f"{index}. {file_name}: Combined Similarity Score: {score}")
 
     print(f"Number of relevant CVs: {len(relevant_cvs)}")
+    print(f"Relevant CVs are copied to: {top_cv_folder}")
 
     # Optionally return or further process relevant_cvs
     return relevant_cvs, ranked_candidates
+
+
 
 
 
