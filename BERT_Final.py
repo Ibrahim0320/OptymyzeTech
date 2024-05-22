@@ -57,6 +57,8 @@ def calculate_similarity_tfidf(job_description, candidate_features):
 def calculate_similarity_bert(job_embed, candidate_embeddings):
     return cosine_similarity([job_embed], candidate_embeddings).flatten()
 
+
+
 def main(job_description, folder_path):
     candidates = retrieve_candidate_texts(folder_path)
     processed_features = [preprocess_text(text) for _, text in candidates]
@@ -82,15 +84,36 @@ def main(job_description, folder_path):
     # Rank candidates
     ranked_candidates = sorted(zip([name for name, _ in candidates], final_scores), key=lambda x: x[1], reverse=True)
 
-    # Print the ranked candidates based on scores
-    for file_name, score in ranked_candidates:
-        print(f"{file_name}: Combined Similarity Score: {score}")
+    # Determine the top candidate's score
+    highest_score = ranked_candidates[0][1]
 
+    # Determine the score range for relevant candidates
+    score_threshold = highest_score - (0.10 * highest_score)  # 10% below the highest score
+
+    # Select candidates within the top 10% score range
+    relevant_cvs = [candidate for candidate in ranked_candidates if candidate[1] >= score_threshold]
+
+    # Print all candidates with index
+    print("All Ranked Candidates:")
+    for index, (file_name, score) in enumerate(ranked_candidates, start=1):
+        print(f"{index}. {file_name}: Combined Similarity Score: {score}")
+
+    print(f"\nTotal number of candidates: {len(ranked_candidates)}")
+
+    # Print relevant CVs with index
+    print("\nTop 10% Score Range Relevant CVs:")
+    for index, (file_name, score) in enumerate(relevant_cvs, start=1):
+        print(f"{index}. {file_name}: Combined Similarity Score: {score}")
+
+    print(f"Number of relevant CVs: {len(relevant_cvs)}")
+
+    # Optionally return or further process relevant_cvs
+    return relevant_cvs, ranked_candidates
 
 
 
 # Specify the job description and the folder path containing CVs
-folder_path = 'Test'
+folder_path = 'All Candidate CVs'
 job_description= '''
 Senior Quality Assurance Engineer We are on the hunt for an exceptional Senior QA Engineer to join and elevate our team. 
 This role is perfect for someone who is not just looking for a job but an opportunity to make a significant impact. 
