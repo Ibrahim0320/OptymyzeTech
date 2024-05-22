@@ -4,13 +4,27 @@ from pdf2image import convert_from_path
 import pytesseract
 import spacy
 import os
+import spacy
+import spacy_transformers
+import pickle
+import pandas as pd
+
+
+train_data = pickle.load(open('/Users/muhammadibrahim/Downloads/train_data.pkl', 'rb'))
+
 
 # Load your custom spaCy model
-nlp = spacy.load('NER_model_v2')
+nlp = spacy.load('nlp_GIT_model2')
 # Load a pre-trained generic model
 nlp = spacy.load('en_core_web_sm')
 
 
+doc = nlp(train_data[0][0])
+for ent in doc.ents:
+    print(f'{ent.label_.upper():{30}}- {ent.text}')
+
+
+'''
 def convert_pdf_to_text(pdf_path):
     images = convert_from_path(pdf_path)
     full_text = []
@@ -43,3 +57,4 @@ def process_folder(folder_path, nlp):
 # Example usage
 folder_path = 'Test1'
 process_folder(folder_path, nlp)
+'''
