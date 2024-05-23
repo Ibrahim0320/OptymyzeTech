@@ -59,8 +59,7 @@ def calculate_similarity_bert(job_embed, candidate_embeddings):
 
 
 
-import os
-import shutil
+
 
 def main(job_description, folder_path):
     candidates = retrieve_candidate_texts(folder_path)
