@@ -17,24 +17,27 @@
     "mode":"default"
   },
   "labels":{
+    "transformer":[
+
+    ],
     "ner":[
-      "College Name",
-      "Companies worked at",
-      "Degree",
-      "Designation",
-      "Email Address",
-      "Graduation Year",
-      "Location",
-      "Name",
-      "Skills",
-      "UNKNOWN",
-      "Years of Experience"
+      "CARDINAL",
+      "DATE",
+      "GPE",
+      "LANGUAGE",
+      "NORP",
+      "ORDINAL",
+      "ORG",
+      "PERSON",
+      "PRODUCT"
     ]
   },
   "pipeline":[
+    "transformer",
     "ner"
   ],
   "components":[
+    "transformer",
     "ner"
   ],
   "disabled":[

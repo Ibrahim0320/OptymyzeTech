@@ -1,4 +1,5 @@
 # Creating a SQL database based on the NER extractions
+
 import os
 import sqlite3
 import spacy
@@ -7,7 +8,7 @@ import pytesseract
 from NER_OCR_Test import process_folder
 
 # Load your custom spaCy model
-nlp = spacy.load('Improved_ner_model')
+nlp = spacy.load('Improved_ner_model')  # Ensure this path is correct
 
 def convert_pdf_to_text(pdf_path):
     images = convert_from_path(pdf_path)

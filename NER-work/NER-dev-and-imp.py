@@ -103,7 +103,7 @@ for itn in range(20):
     print(f"Iteration {itn + 1}, Losses: {losses}")
 
 # Save the trained model
-nlp.to_disk("Improved_ner_model")
+#nlp.to_disk("Improved_ner_model")
 
 
 # Test the model

@@ -14,7 +14,7 @@ train_data = pickle.load(open('/Users/muhammadibrahim/Downloads/train_data.pkl',
 
 
 # Load your custom spaCy model
-nlp = spacy.load('nlp_GIT_model2')
+nlp = spacy.load('') #nlp_GIT_model2
 # Load a pre-trained generic model
 nlp = spacy.load('en_core_web_sm')
 
