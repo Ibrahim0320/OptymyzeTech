@@ -14,7 +14,7 @@ app = Flask(__name__)
 openai.api_key = "your-api-key"
 
 # Load pre-trained BERT model and tokenizer
-model_name = "your-bert-model"
+model_name = "bert-base-cased"
 tokenizer = BertTokenizer.from_pretrained(model_name)
 model = BertForSequenceClassification.from_pretrained(model_name)
 
