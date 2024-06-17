@@ -8,148 +8,128 @@ import requests
 import csv
 import pdfplumber
 from docx import Document
-from flask import Flask, request, jsonify, send_from_directory, render_template, redirect, url_for
-from transformers import BertTokenizer, BertForSequenceClassification
+from flask import Flask, request, jsonify, send_from_directory, render_template
+from transformers import BertTokenizer, BertModel
 import torch
-from PyPDF2 import PdfReader
-import openai
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+from nltk.corpus import stopwords
+from nltk.stem import WordNetLemmatizer
+import string
 import zipfile
+import openai
 
-app = Flask(__name__, static_url_path='', static_folder='frontend', template_folder='templates')
+app = Flask(__name__, static_url_path='/static', static_folder='frontend', template_folder='templates')
 
 # Set up OpenAI API key (Make sure to keep this secret)
-openai.api_key = "your_openai_api_key"
+openai.api_key = ""
 
-# Load pre-trained BERT model and tokenizer
-model_name = "bert-base-cased"
-tokenizer = BertTokenizer.from_pretrained(model_name)
-model = BertForSequenceClassification.from_pretrained(model_name)
+# Load BERT model and tokenizer
+tokenizer = BertTokenizer.from_pretrained('bert-base-cased')
+model = BertModel.from_pretrained('bert-base-cased')
 
-# Function to extract text from a PDF file
-def extract_text_from_pdf(pdf_path):
-    text = ""
-    with open(pdf_path, 'rb') as file:
-        reader = PdfReader(file)
-        for page in reader.pages:
-            text += page.extract_text()
-    return text
-
-# Function to get BERT score
-def get_bert_score(job_description, candidate_text):
-    inputs = tokenizer(job_description, candidate_text, return_tensors='pt', truncation=True, padding=True, max_length=512)
-    outputs = model(**inputs)
-    scores = outputs.logits
-    return scores.softmax(dim=1).detach().numpy()[0][1]  # Assuming binary classification, we take the positive class score
-
+# Function to read text from a file
 def read_text_from_file(file_path):
     text = ""
-    try:
-        if file_path.endswith('.pdf'):
-            with pdfplumber.open(file_path) as pdf:
-                pages = [page.extract_text() for page in pdf.pages if page.extract_text()]
-                text = ' '.join(pages)
-        elif file_path.endswith('.docx'):
-            doc = Document(file_path)
-            text = ' '.join(para.text for para in doc.paragraphs if para.text)
-    except Exception as e:
-        print(f"Error reading {file_path}: {e}")
+    if file_path.endswith('.pdf'):
+        with pdfplumber.open(file_path) as pdf:
+            text = ' '.join(page.extract_text() for page in pdf.pages if page.extract_text())
+    elif file_path.endswith('.docx'):
+        doc = Document(file_path)
+        text = ' '.join(para.text for para in doc.paragraphs)
     return text
 
+# Function to retrieve candidate texts from a folder
 def retrieve_candidate_texts(folder_path):
     texts = []
     for file_name in os.listdir(folder_path):
         file_path = os.path.join(folder_path, file_name)
         if file_path.endswith('.pdf') or file_path.endswith('.docx'):
             text = read_text_from_file(file_path)
-            if text:
-                texts.append((file_name, text))
-            else:
-                print(f"No text extracted from {file_name}.")
+            texts.append((file_name, text))
     return texts
 
-def analyze_cvs_with_gpt4(api_key, job_description, cvs, batch_size=3, max_retries=5):
-    headers = {
-        'Content-Type': 'application/json',
-        'Authorization': f'Bearer {api_key}'
-    }
+# Function to preprocess text
+def preprocess_text(text):
+    text = text.lower()
+    text = ''.join(char for char in text if char not in string.punctuation)
+    words = text.split()
+    stop_words = set(stopwords.words('english'))
+    lemmatizer = WordNetLemmatizer()
+    return ' '.join(lemmatizer.lemmatize(word) for word in words if word not in stop_words)
 
-    all_results = []
-    for i in range(0, len(cvs), batch_size):
-        batch = cvs[i:i + batch_size]
-        prompt = f"Job Description: {job_description}\n\nCVs:\n"
-        for idx, (filename, text) in enumerate(batch, start=1):
-            prompt += f"{idx}. Filename: {filename}, CV Content: {text}\n"
-        prompt += "\nRank the CVs based on their suitability for the job described above. More CVs will follow. Make sure to give me a final ranking containing every single CV that I have submitted to you."
+# Function to encode text using BERT
+def encode_text_bert(texts):
+    inputs = tokenizer(texts, return_tensors="pt", max_length=512, truncation=True, padding="max_length")
+    outputs = model(**inputs)
+    return outputs.last_hidden_state.mean(dim=1).detach().numpy()
 
-        data = {
-            "model": "gpt-4",
-            "messages": [
-                {"role": "system", "content": "You are an AI assistant tasked with evaluating CVs based on a job description."},
-                {"role": "user", "content": prompt}
-            ],
-            "max_tokens": 2500,
-            "temperature": 0.5
-        }
+# Function to calculate similarity using TF-IDF
+def calculate_similarity_tfidf(job_description, candidate_features):
+    vectorizer = TfidfVectorizer()
+    all_texts = [job_description] + candidate_features
+    vectors = vectorizer.fit_transform(all_texts)
+    return cosine_similarity(vectors[0:1], vectors[1:]).flatten()
 
-        retries = 0
-        while retries < max_retries:
-            try:
-                response = requests.post('https://api.openai.com/v1/chat/completions', headers=headers, json=data)
-                response.raise_for_status()
-                all_results.append(response.json()['choices'][0]['message']['content'].strip())
-                break
-            except requests.exceptions.RequestException as e:
-                if response.status_code == 429:
-                    retry_after = int(response.headers.get('Retry-After', 2 ** retries))
-                    print(f"Rate limit exceeded. Retrying in {retry_after} seconds...")
-                    time.sleep(retry_after)
-                    retries += 1
-                else:
-                    print(f"An error occurred with OpenAI API: {e}")
-                    return None
-        else:
-            print("Max retries exceeded. Could not complete the request.")
-            return None
-    return "\n\n".join(all_results)
+# Function to calculate similarity using BERT embeddings
+def calculate_similarity_bert(job_embed, candidate_embeddings):
+    return cosine_similarity([job_embed], candidate_embeddings).flatten()
 
-def save_response_to_text(response, filename='gpt4_response.txt'):
-    with open(filename, 'w') as file:
-        file.write(response)
-    print(f"Response saved to {filename}")
-
-def save_response_to_csv(response, filename='gpt4_response.csv'):
-    lines = response.split("\n")
-    data = []
-    for line in lines:
-        if line.strip():  # Skip empty lines
-            parts = line.split(". ", 1)
-            if len(parts) == 2:
-                index, content = parts
-                data.append([index.strip(), content.strip()])
-    
-    with open(filename, 'w', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerow(['Rank', 'Content'])
-        writer.writerows(data)
-    print(f"Response saved to {filename}")
-
+# Function to create a zip file from a folder
 def create_zip_folder(folder_path, zip_name):
     with zipfile.ZipFile(zip_name, 'w') as zipf:
         for root, _, files in os.walk(folder_path):
             for file in files:
                 zipf.write(os.path.join(root, file), os.path.relpath(os.path.join(root, file), folder_path))
 
-# Function to evaluate candidates
-def evaluate_candidates(job_description, cv_folder):
-    scores = {}
-    for cv_filename in os.listdir(cv_folder):
-        if cv_filename.endswith('.pdf'):
-            cv_path = os.path.join(cv_folder, cv_filename)
-            candidate_text = extract_text_from_pdf(cv_path)
-            bert_score = get_bert_score(job_description, candidate_text)
-            if bert_score > 0.5:  # BERT threshold
-                scores[cv_filename] = bert_score
-    return scores
+# Main function to process CVs and calculate scores
+def main(job_description, folder_path):
+    candidates = retrieve_candidate_texts(folder_path)
+    processed_features = [preprocess_text(text) for _, text in candidates]
+
+    # Preprocess and encode texts
+    processed_texts = [preprocess_text(job_description)] + processed_features
+    embeddings = encode_text_bert(processed_texts)
+
+    job_embed = embeddings[0]
+    candidate_embeddings = embeddings[1:]
+
+    # Compute TF-IDF scores
+    tfidf_scores = calculate_similarity_tfidf(job_description, processed_features)
+
+    # Compute BERT scores
+    bert_scores = calculate_similarity_bert(job_embed, candidate_embeddings)
+
+    # Combine scores using a weighted average
+    weight_for_bert = 0.7
+    weight_for_tfidf = 0.3
+    final_scores = weight_for_bert * bert_scores + weight_for_tfidf * tfidf_scores
+
+    # Rank candidates
+    ranked_candidates = sorted(zip([name for name, _ in candidates], final_scores), key=lambda x: x[1], reverse=True)
+
+    # Determine the top candidate's score
+    highest_score = ranked_candidates[0][1]
+
+    # Determine the score range for relevant candidates
+    score_threshold = highest_score - (0.10 * highest_score)  # 10% below the highest score
+
+    # Select candidates within the top 10% score range
+    relevant_cvs = [candidate for candidate in ranked_candidates if candidate[1] >= score_threshold]
+
+    # Create a new folder for top candidates' CVs
+    top_cv_folder = os.path.join(folder_path, "Top_CVs")
+    if not os.path.exists(top_cv_folder):
+        os.makedirs(top_cv_folder)
+
+    # Copy relevant CV files to the new folder
+    for file_name, _ in relevant_cvs:
+        src_path = os.path.join(folder_path, file_name)
+        dest_path = os.path.join(top_cv_folder, file_name)
+        shutil.copy2(src_path, dest_path)  # copy2 preserves metadata
+
+    # Optionally return or further process relevant_cvs
+    return relevant_cvs, ranked_candidates
 
 @app.route('/')
 def serve_frontend():
@@ -160,6 +140,9 @@ def evaluate():
     job_description = request.form['job_description']
     uploaded_files = request.files.getlist('files')
     
+    print("Received job description:", job_description)
+    print("Received files:", [file.filename for file in uploaded_files])
+
     # Save uploaded files to a temporary directory
     cv_folder = 'temp_cvs'
     if not os.path.exists(cv_folder):
@@ -167,35 +150,25 @@ def evaluate():
     for uploaded_file in uploaded_files:
         uploaded_file.save(os.path.join(cv_folder, uploaded_file.filename))
     
-    # Evaluate candidates using BERT
-    bert_scores = evaluate_candidates(job_description, cv_folder)
-    
-    # Prepare the CVs that passed BERT threshold for GPT-4 analysis
-    top_cv_folder = 'temp_cvs_top'
-    if not os.path.exists(top_cv_folder):
-        os.makedirs(top_cv_folder)
-    for cv_filename, score in bert_scores.items():
-        if score > 0.5:  # Adjust this threshold as needed
-            shutil.copy(os.path.join(cv_folder, cv_filename), os.path.join(top_cv_folder, cv_filename))
-
-    # Perform GPT-4 analysis
-    top_cvs = retrieve_candidate_texts(top_cv_folder)
-    response = analyze_cvs_with_gpt4(openai.api_key, job_description, top_cvs)
+    # Process CVs using the new main function
+    relevant_cvs, ranked_candidates = main(job_description, cv_folder)
     
     # Create a zip file of the top CVs
     zip_name = 'top_cvs.zip'
-    create_zip_folder(top_cv_folder, zip_name)
+    create_zip_folder(os.path.join(cv_folder, "Top_CVs"), zip_name)
     
     # Clean up temporary CV folders
     shutil.rmtree(cv_folder)
-    shutil.rmtree(top_cv_folder)
 
-    if response:
-        save_response_to_text(response)
-        save_response_to_csv(response)
-        return render_template('results.html', result=response, zip_name=zip_name)
+    # Generate a readable result for display
+    result = "\n".join([f"{i+1}. {name}: {score}" for i, (name, score) in enumerate(ranked_candidates)])
+    
+    if relevant_cvs:
+        print("Response: ", result)
+        print("Zip Name: ", zip_name)
+        return render_template('results.html', result=result, zip_name=zip_name)
     else:
-        return jsonify({"error": "Failed to analyze CVs with GPT-4"}), 500
+        return jsonify({"error": "Failed to process CVs"}), 500
 
 @app.route('/download/<filename>')
 def download_file(filename):

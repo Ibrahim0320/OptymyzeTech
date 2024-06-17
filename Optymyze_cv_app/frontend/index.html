@@ -3,23 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CV Parser</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>CV Evaluation</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <script src="/static/app.js"></script>
 </head>
 <body>
     <div class="container">
-        <h1>CV Parser App</h1>
-        <form id="cvForm">
-            <label for="jobDescription">Job Description:</label>
-            <textarea id="jobDescription" name="job_description" required></textarea>
-
-            <label for="cvFiles">Upload CVs:</label>
-            <input type="file" id="cvFiles" name="files" multiple required>
-
-            <button type="submit">Evaluate</button>
+        <h1>Evaluate CVs</h1>
+        <form action="/evaluate" method="post" enctype="multipart/form-data">
+            <label for="job_description">Job Description:</label>
+            <textarea id="job_description" name="job_description" required></textarea>
+            <label for="files">Upload CVs:</label>
+            <input type="file" id="files" name="files" multiple required>
+            <button type="submit" class="button">Evaluate</button>
         </form>
-        <div id="results"></div>
     </div>
-    <script src="app.js"></script>
 </body>
 </html>

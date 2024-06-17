@@ -1,73 +1,43 @@
 body {
     font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
+    background-color: #121212;
+    color: #e0e0e0;
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
-    background-color: #f4f4f4;
+    margin: 0;
 }
 
 .container {
-    background: white;
+    background: #1e1e1e;
     padding: 20px;
     border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    width: 80%;
+    max-width: 800px;
 }
 
-h1 {
-    margin-bottom: 20px;
-}
-
-form {
-    display: flex;
-    flex-direction: column;
-}
-
-label {
-    margin-bottom: 5px;
-}
-
-textarea {
-    margin-bottom: 20px;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    resize: vertical;
-}
-
-input[type="file"] {
-    margin-bottom: 20px;
-}
-
-button {
-    padding: 10px;
-    background: #007bff;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-button:hover {
-    background: #0056b3;
-}
-
-#results {
-    margin-top: 20px;
+h1, h2 {
+    text-align: center;
+    color: #ffffff;
 }
 
 pre {
-    background: #f8f8f8;
+    background: #333333;
     padding: 10px;
     border-radius: 4px;
     white-space: pre-wrap;
+    max-height: 400px;
+    overflow-y: auto;
+    color: #e0e0e0;
 }
 
 .button {
-    display: inline-block;
-    padding: 10px 20px;
+    display: block;
+    width: 100%;
+    text-align: center;
+    padding: 10px;
     margin-top: 20px;
     background: #007bff;
     color: white;
@@ -77,4 +47,28 @@ pre {
 
 .button:hover {
     background: #0056b3;
+}
+
+label, textarea, input {
+    display: block;
+    width: 100%;
+    margin-bottom: 10px;
+    background: #2c2c2c;
+    color: #e0e0e0;
+    border: 1px solid #444444;
+    border-radius: 4px;
+    padding: 10px;
+}
+
+textarea, input[type="file"] {
+    color: #ffffff;
+}
+
+.debug-info {
+    margin-top: 20px;
+    padding: 10px;
+    background: #ffeeba;
+    border: 1px solid #ffeeba;
+    border-radius: 4px;
+    color: #000000;
 }
