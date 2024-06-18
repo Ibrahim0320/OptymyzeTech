@@ -1,11 +1,9 @@
 # Setting up the backend with flask
 
-
 import os
 import shutil
 import time
 import requests
-import csv
 import pdfplumber
 from docx import Document
 from flask import Flask, request, jsonify, send_from_directory, render_template
@@ -21,7 +19,7 @@ import openai
 
 app = Flask(__name__, static_url_path='/static', static_folder='frontend', template_folder='templates')
 
-# Set up OpenAI API key (Make sure to keep this secret)
+# Set up OpenAI API key
 openai.api_key = ""
 
 # Load BERT model and tokenizer
@@ -82,6 +80,56 @@ def create_zip_folder(folder_path, zip_name):
             for file in files:
                 zipf.write(os.path.join(root, file), os.path.relpath(os.path.join(root, file), folder_path))
 
+# Function to generate ChatGPT evaluation report with batch processing and retry logic
+def generate_chatgpt_report(job_description, cvs, batch_size=3, max_retries=10):
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': f'Bearer {openai.api_key}'
+    }
+    
+    all_results = []
+    
+    for i in range(0, len(cvs), batch_size):
+        batch = cvs[i:i + batch_size]
+        prompt = f"Job Description: {job_description}\n\nCVs:\n"
+        for idx, (filename, text) in enumerate(batch, start=1):
+            prompt += f"{idx}. Filename: {filename}, CV Content: {text}\n"
+        prompt += "\nEvaluate these CVs based on the job description and provide a detailed report for each."
+
+        data = {
+            "model": "gpt-4",
+            "messages": [
+                {"role": "system", "content": "You are an AI assistant tasked with evaluating CVs based on a job description."},
+                {"role": "user", "content": prompt}
+            ],
+            "max_tokens": 2500,
+            "temperature": 0.5
+        }
+
+        for attempt in range(max_retries):
+            try:
+                response = requests.post('https://api.openai.com/v1/chat/completions', headers=headers, json=data)
+                response.raise_for_status()
+                all_results.append(response.json()['choices'][0]['message']['content'].strip())
+                break
+            except requests.exceptions.HTTPError as e:
+                if response.status_code == 429:
+                    retry_after = response.headers.get('Retry-After')
+                    if retry_after is None:
+                        retry_after = 2 ** attempt
+                    else:
+                        retry_after = int(retry_after)
+                    print(f"Rate limit exceeded. Retrying in {retry_after} seconds...")
+                    time.sleep(retry_after)
+                else:
+                    print(f"An error occurred with OpenAI API: {e}")
+                    break
+        else:
+            print("Max retries exceeded. Could not complete the request.")
+            return "Error: Unable to generate ChatGPT report due to rate limiting."
+    
+    return "\n\n".join(all_results)
+
 # Main function to process CVs and calculate scores
 def main(job_description, folder_path):
     candidates = retrieve_candidate_texts(folder_path)
@@ -128,8 +176,12 @@ def main(job_description, folder_path):
         dest_path = os.path.join(top_cv_folder, file_name)
         shutil.copy2(src_path, dest_path)  # copy2 preserves metadata
 
-    # Optionally return or further process relevant_cvs
-    return relevant_cvs, ranked_candidates
+    # Generate ChatGPT report
+    relevant_texts = [(name, read_text_from_file(os.path.join(folder_path, name))) for name, _ in relevant_cvs]
+    chatgpt_report = generate_chatgpt_report(job_description, relevant_texts)
+
+    # Return relevant CVs, ranked candidates, and ChatGPT report
+    return relevant_cvs, ranked_candidates, chatgpt_report
 
 @app.route('/')
 def serve_frontend():
@@ -151,7 +203,7 @@ def evaluate():
         uploaded_file.save(os.path.join(cv_folder, uploaded_file.filename))
     
     # Process CVs using the new main function
-    relevant_cvs, ranked_candidates = main(job_description, cv_folder)
+    relevant_cvs, ranked_candidates, chatgpt_report = main(job_description, cv_folder)
     
     # Create a zip file of the top CVs
     zip_name = 'top_cvs.zip'
@@ -166,7 +218,7 @@ def evaluate():
     if relevant_cvs:
         print("Response: ", result)
         print("Zip Name: ", zip_name)
-        return render_template('results.html', result=result, zip_name=zip_name)
+        return render_template('results.html', result=result, zip_name=zip_name, chatgpt_report=chatgpt_report)
     else:
         return jsonify({"error": "Failed to process CVs"}), 500
 
@@ -176,3 +228,4 @@ def download_file(filename):
 
 if __name__ == "__main__":
     app.run(debug=True)
+
