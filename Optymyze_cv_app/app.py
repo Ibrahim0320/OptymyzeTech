@@ -180,8 +180,13 @@ def main(job_description, folder_path):
     relevant_texts = [(name, read_text_from_file(os.path.join(folder_path, name))) for name, _ in relevant_cvs]
     chatgpt_report = generate_chatgpt_report(job_description, relevant_texts)
 
-    # Return relevant CVs, ranked candidates, and ChatGPT report
-    return relevant_cvs, ranked_candidates, chatgpt_report
+    # Save ChatGPT report as a text file
+    chatgpt_report_file = "chatgpt_report.txt"
+    with open(chatgpt_report_file, "w") as file:
+        file.write(chatgpt_report)
+
+    # Return relevant CVs, ranked candidates, and ChatGPT report file name
+    return relevant_cvs, ranked_candidates, chatgpt_report_file
 
 @app.route('/')
 def serve_frontend():
@@ -203,7 +208,7 @@ def evaluate():
         uploaded_file.save(os.path.join(cv_folder, uploaded_file.filename))
     
     # Process CVs using the new main function
-    relevant_cvs, ranked_candidates, chatgpt_report = main(job_description, cv_folder)
+    relevant_cvs, ranked_candidates, chatgpt_report_file = main(job_description, cv_folder)
     
     # Create a zip file of the top CVs
     zip_name = 'top_cvs.zip'
@@ -218,9 +223,16 @@ def evaluate():
     if relevant_cvs:
         print("Response: ", result)
         print("Zip Name: ", zip_name)
-        return render_template('results.html', result=result, zip_name=zip_name, chatgpt_report=chatgpt_report)
+        return jsonify({"result": result, "zip_name": zip_name, "chatgpt_report_file": chatgpt_report_file})
     else:
         return jsonify({"error": "Failed to process CVs"}), 500
+
+@app.route('/results')
+def results():
+    zip_name = request.args.get('zip_name')
+    result = request.args.get('result')
+    chatgpt_report_file = request.args.get('chatgpt_report_file')
+    return render_template('results.html', zip_name=zip_name, result=result, chatgpt_report_file=chatgpt_report_file)
 
 @app.route('/download/<filename>')
 def download_file(filename):
@@ -228,4 +240,3 @@ def download_file(filename):
 
 if __name__ == "__main__":
     app.run(debug=True)
-

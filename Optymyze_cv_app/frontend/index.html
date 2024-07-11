@@ -3,20 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CV Evaluation</title>
+    <title>CV Parser App - Optymyze Technologies</title>
     <link rel="stylesheet" href="/static/styles.css">
-    <script src="/static/app.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="container">
-        <h1>Evaluate CVs</h1>
-        <form action="/evaluate" method="post" enctype="multipart/form-data">
-            <label for="job_description">Job Description:</label>
+    <header>
+        <img src="/static/company-logo.png" alt="Company Logo" class="logo">
+        <h1>Optymyze Technologies</h1>
+    </header>
+    <main>
+        <form id="upload-form" action="/evaluate" method="post" enctype="multipart/form-data">
+            <label for="job_description">Job Description</label>
             <textarea id="job_description" name="job_description" required></textarea>
-            <label for="files">Upload CVs:</label>
+            
+            <label for="files">Upload CVs</label>
             <input type="file" id="files" name="files" multiple required>
-            <button type="submit" class="button">Evaluate</button>
+
+            <button type="submit">Evaluate</button>
         </form>
-    </div>
+        <div id="spinner" class="spinner">
+            <div class="spinner-icon"></div>
+            <p id="estimated-time">Estimating time...</p>
+        </div>
+        <div id="results"></div>
+    </main>
+    <footer>
+        <p>&copy; 2024 Optymyze Technologies. All rights reserved.</p>
+    </footer>
+    <script src="/static/app.js"></script>
 </body>
 </html>
