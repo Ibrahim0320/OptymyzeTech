@@ -1,132 +1,132 @@
-body {
-    font-family: 'Roboto', sans-serif;
+body, html {
     margin: 0;
     padding: 0;
-    background-color: #f9f9f9;
-    color: #333;
+    height: 100%;
+    font-family: 'Roboto', sans-serif;
+    background-color: #f0f8ff; /* Light blue background */
 }
 
 header {
-    background-color: #007bff;
-    padding: 1rem;
-    text-align: center;
+    background-color: #007bff; /* Blue header */
     color: white;
+    text-align: center;
+    padding: 10px 0; /* Reduced padding for smaller header */
+    width: 100%;
 }
 
 .logo {
-    max-width: 150px;
+    width: 50px; /* Smaller logo */
     display: block;
-    margin: 0 auto 10px;
+    margin: 0 auto;
 }
 
 h1 {
+    font-size: 1.5em; /* Adjust font size for smaller header */
     margin: 0;
-    font-size: 2rem;
 }
 
 main {
-    padding: 2rem;
+    min-height: calc(100vh - 120px); /* Adjusted for header and footer height */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 20px; /* Padding for content */
 }
 
 form {
-    background: white;
-    padding: 2rem;
-    border-radius: 8px;
+    width: 80%;
     max-width: 600px;
-    margin: 2rem auto;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    margin: 20px auto;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    background-color: #fff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Add some shadow for better visibility */
 }
 
-label {
+form label {
     display: block;
-    margin-bottom: 0.5rem;
-    font-weight: 500;
+    margin-top: 10px;
 }
 
-textarea, input[type="file"] {
+form textarea,
+form input[type="file"],
+form button {
     width: 100%;
-    padding: 0.5rem;
-    margin-bottom: 1rem;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 1rem;
+    padding: 10px;
+    margin-top: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc; /* Border for inputs */
 }
 
-button {
-    display: inline-block;
+form button {
     background-color: #007bff;
     color: white;
-    padding: 0.75rem 1.5rem;
-    font-size: 1rem;
     border: none;
-    border-radius: 4px;
     cursor: pointer;
-    text-align: center;
 }
 
-button:hover {
-    background-color: #0056b3;
-}
-
-.container {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 2rem;
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-}
-
-pre {
-    background: #f4f4f4;
-    padding: 1rem;
-    border-radius: 4px;
-    overflow-x: auto;
-}
-
-a.button {
-    display: inline-block;
-    background-color: #007bff;
-    color: white;
-    padding: 0.75rem 1.5rem;
-    font-size: 1rem;
-    border: none;
-    border-radius: 4px;
-    text-decoration: none;
-    cursor: pointer;
-    text-align: center;
-}
-
-a.button:hover {
-    background-color: #0056b3;
-}
-
-footer {
-    text-align: center;
-    padding: 1rem;
-    background-color: #007bff;
-    color: white;
-    position: absolute;
-    bottom: 0;
-    width: 100%;
+form button:hover {
+    background-color: #0056b3; /* Darker blue on hover */
 }
 
 .spinner {
-    display: none;
+    display: none; /* Hide by default */
+    margin-top: 20px;
     text-align: center;
 }
 
 .spinner-icon {
     border: 8px solid #f3f3f3;
+    border-top: 8px solid #007bff; /* Blue spinner */
     border-radius: 50%;
-    border-top: 8px solid #007bff;
     width: 60px;
     height: 60px;
-    animation: spin 1s linear infinite;
+    animation: spin 2s linear infinite;
     margin: 0 auto;
 }
 
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+#results {
+    margin-top: 20px;
+    width: 80%;
+    max-width: 600px;
+    text-align: center;
+}
+
+footer {
+    background-color: #007bff; /* Blue footer */
+    color: white;
+    height: 40px; /* Smaller footer */
+    text-align: center;
+    padding: 10px 0; /* Reduced padding */
+    width: 100%;
+    position: relative; /* Ensure it doesn't overlap content */
+}
+
+footer p {
+    margin: 0;
+    font-size: 0.9em; /* Smaller text */
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+    h1 {
+        font-size: 1.2em; /* Smaller text on mobile */
+    }
+
+    form {
+        width: 100%; /* Full width on mobile */
+        margin: 10px;
+    }
+
+    .spinner-icon {
+        width: 40px;
+        height: 40px;
+    }
 }

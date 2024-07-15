@@ -17,7 +17,7 @@ import string
 import zipfile
 import openai
 
-app = Flask(__name__, static_url_path='/static', static_folder='frontend', template_folder='templates')
+app = Flask(__name__, static_url_path='/static', static_folder='frontend/static', template_folder='frontend/templates')
 
 # Set up OpenAI API key
 openai.api_key = ""
@@ -133,32 +133,40 @@ def generate_chatgpt_report(job_description, cvs, batch_size=3, max_retries=10):
 # Main function to process CVs and calculate scores
 def main(job_description, folder_path):
     try:
+        print("Main function started")  # Debug statement
         candidates = retrieve_candidate_texts(folder_path)
         if not candidates:
+            print("No CVs found")  # Debug statement
             return None, "No CVs found in the folder."
 
         processed_features = [preprocess_text(text) for _, text in candidates]
+        print(f"Processed features: {processed_features}")  # Debug statement
 
         # Preprocess and encode texts
         processed_texts = [preprocess_text(job_description)] + processed_features
         embeddings = encode_text_bert(processed_texts)
+        print(f"Embeddings: {embeddings}")  # Debug statement
 
         job_embed = embeddings[0]
         candidate_embeddings = embeddings[1:]
 
         # Compute TF-IDF scores
         tfidf_scores = calculate_similarity_tfidf(job_description, processed_features)
+        print(f"TF-IDF scores: {tfidf_scores}")  # Debug statement
 
         # Compute BERT scores
         bert_scores = calculate_similarity_bert(job_embed, candidate_embeddings)
+        print(f"BERT scores: {bert_scores}")  # Debug statement
 
         # Combine scores using a weighted average
         weight_for_bert = 0.7
         weight_for_tfidf = 0.3
         final_scores = weight_for_bert * bert_scores + weight_for_tfidf * tfidf_scores
+        print(f"Final scores: {final_scores}")  # Debug statement
 
         # Rank candidates
         ranked_candidates = sorted(zip([name for name, _ in candidates], final_scores), key=lambda x: x[1], reverse=True)
+        print(f"Ranked candidates: {ranked_candidates}")  # Debug statement
 
         # Determine the top candidate's score
         highest_score = ranked_candidates[0][1]
@@ -170,6 +178,7 @@ def main(job_description, folder_path):
         relevant_cvs = [candidate for candidate in ranked_candidates if candidate[1] >= score_threshold]
 
         if not relevant_cvs:
+            print("No CVs within the top 10% score range")  # Debug statement
             return None, "No CVs within the top 10% score range."
 
         # Create a new folder for top candidates' CVs
@@ -195,53 +204,58 @@ def main(job_description, folder_path):
 
         return (relevant_cvs, ranked_candidates, chatgpt_report_file), None
     except Exception as e:
+        print(f"Exception in main function: {str(e)}")  # Debug statement
         return None, str(e)
 
 @app.route('/')
 def serve_frontend():
-    return send_from_directory(app.static_folder, 'index.html')
+    return render_template('index.html')
 
 @app.route('/evaluate', methods=['POST'])
 def evaluate():
-    job_description = request.form['job_description']
-    uploaded_files = request.files.getlist('files')
-    
-    print("Received job description:", job_description)
-    print("Received files:", [file.filename for file in uploaded_files])
+    try:
+        job_description = request.form['job_description']
+        uploaded_files = request.files.getlist('files')
+        
+        print("Received job description:", job_description)
+        print("Received files:", [file.filename for file in uploaded_files])
 
-    # Save uploaded files to a temporary directory
-    cv_folder = 'temp_cvs'
-    if not os.path.exists(cv_folder):
-        os.makedirs(cv_folder)
-    for uploaded_file in uploaded_files:
-        uploaded_file.save(os.path.join(cv_folder, uploaded_file.filename))
-    
-    # Process CVs using the new main function
-    result, error = main(job_description, cv_folder)
-    
-    if error:
-        print(f"Error processing CVs: {error}")
-        return jsonify({"error": error}), 500
+        # Save uploaded files to a temporary directory
+        cv_folder = 'temp_cvs'
+        if not os.path.exists(cv_folder):
+            os.makedirs(cv_folder)
+        for uploaded_file in uploaded_files:
+            uploaded_file.save(os.path.join(cv_folder, uploaded_file.filename))
+        
+        # Process CVs using the new main function
+        result, error = main(job_description, cv_folder)
+        
+        if error:
+            print(f"Error processing CVs: {error}")
+            return jsonify({"error": error}), 500
 
-    relevant_cvs, ranked_candidates, chatgpt_report_file = result
+        relevant_cvs, ranked_candidates, chatgpt_report_file = result
 
-    # Create a zip file of the top CVs
-    zip_name = 'top_cvs.zip'
-    create_zip_folder(os.path.join(cv_folder, "Top_CVs"), zip_name)
-    
-    # Clean up temporary CV folders
-    shutil.rmtree(cv_folder)
+        # Create a zip file of the top CVs
+        zip_name = 'top_cvs.zip'
+        create_zip_folder(os.path.join(cv_folder, "Top_CVs"), zip_name)
+        
+        # Clean up temporary CV folders
+        shutil.rmtree(cv_folder)
 
-    # Generate a readable result for display
-    result_text = "\n".join([f"{i+1}. {name}: {score}" for i, (name, score) in enumerate(ranked_candidates)])
-    
-    if relevant_cvs:
-        print("Response: ", result_text)
-        print("Zip Name: ", zip_name)
-        print("ChatGPT Report File: ", chatgpt_report_file)
-        return render_template('results.html', result=result_text, zip_name=zip_name, chatgpt_report_file=chatgpt_report_file)
-    else:
-        return jsonify({"error": "Failed to process CVs"}), 500
+        # Generate a readable result for display
+        result_text = "\n".join([f"{i+1}. {name}: {score}" for i, (name, score) in enumerate(ranked_candidates)])
+        
+        if relevant_cvs:
+            print("Response: ", result_text)
+            print("Zip Name: ", zip_name)
+            print("ChatGPT Report File: ", chatgpt_report_file)
+            return render_template('results.html', result=result_text, zip_name=zip_name, chatgpt_report_file=chatgpt_report_file)
+        else:
+            return jsonify({"error": "Failed to process CVs"}), 500
+    except Exception as e:
+        print(f"Exception in evaluate function: {str(e)}")  # Debug statement
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/results')
 def results():
