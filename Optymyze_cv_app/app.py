@@ -132,61 +132,70 @@ def generate_chatgpt_report(job_description, cvs, batch_size=3, max_retries=10):
 
 # Main function to process CVs and calculate scores
 def main(job_description, folder_path):
-    candidates = retrieve_candidate_texts(folder_path)
-    processed_features = [preprocess_text(text) for _, text in candidates]
+    try:
+        candidates = retrieve_candidate_texts(folder_path)
+        if not candidates:
+            return None, "No CVs found in the folder."
 
-    # Preprocess and encode texts
-    processed_texts = [preprocess_text(job_description)] + processed_features
-    embeddings = encode_text_bert(processed_texts)
+        processed_features = [preprocess_text(text) for _, text in candidates]
 
-    job_embed = embeddings[0]
-    candidate_embeddings = embeddings[1:]
+        # Preprocess and encode texts
+        processed_texts = [preprocess_text(job_description)] + processed_features
+        embeddings = encode_text_bert(processed_texts)
 
-    # Compute TF-IDF scores
-    tfidf_scores = calculate_similarity_tfidf(job_description, processed_features)
+        job_embed = embeddings[0]
+        candidate_embeddings = embeddings[1:]
 
-    # Compute BERT scores
-    bert_scores = calculate_similarity_bert(job_embed, candidate_embeddings)
+        # Compute TF-IDF scores
+        tfidf_scores = calculate_similarity_tfidf(job_description, processed_features)
 
-    # Combine scores using a weighted average
-    weight_for_bert = 0.7
-    weight_for_tfidf = 0.3
-    final_scores = weight_for_bert * bert_scores + weight_for_tfidf * tfidf_scores
+        # Compute BERT scores
+        bert_scores = calculate_similarity_bert(job_embed, candidate_embeddings)
 
-    # Rank candidates
-    ranked_candidates = sorted(zip([name for name, _ in candidates], final_scores), key=lambda x: x[1], reverse=True)
+        # Combine scores using a weighted average
+        weight_for_bert = 0.7
+        weight_for_tfidf = 0.3
+        final_scores = weight_for_bert * bert_scores + weight_for_tfidf * tfidf_scores
 
-    # Determine the top candidate's score
-    highest_score = ranked_candidates[0][1]
+        # Rank candidates
+        ranked_candidates = sorted(zip([name for name, _ in candidates], final_scores), key=lambda x: x[1], reverse=True)
 
-    # Determine the score range for relevant candidates
-    score_threshold = highest_score - (0.10 * highest_score)  # 10% below the highest score
+        # Determine the top candidate's score
+        highest_score = ranked_candidates[0][1]
 
-    # Select candidates within the top 10% score range
-    relevant_cvs = [candidate for candidate in ranked_candidates if candidate[1] >= score_threshold]
+        # Determine the score range for relevant candidates
+        score_threshold = highest_score - (0.10 * highest_score)  # 10% below the highest score
 
-    # Create a new folder for top candidates' CVs
-    top_cv_folder = os.path.join(folder_path, "Top_CVs")
-    if not os.path.exists(top_cv_folder):
-        os.makedirs(top_cv_folder)
+        # Select candidates within the top 10% score range
+        relevant_cvs = [candidate for candidate in ranked_candidates if candidate[1] >= score_threshold]
 
-    # Copy relevant CV files to the new folder
-    for file_name, _ in relevant_cvs:
-        src_path = os.path.join(folder_path, file_name)
-        dest_path = os.path.join(top_cv_folder, file_name)
-        shutil.copy2(src_path, dest_path)  # copy2 preserves metadata
+        if not relevant_cvs:
+            return None, "No CVs within the top 10% score range."
 
-    # Generate ChatGPT report
-    relevant_texts = [(name, read_text_from_file(os.path.join(folder_path, name))) for name, _ in relevant_cvs]
-    chatgpt_report = generate_chatgpt_report(job_description, relevant_texts)
+        # Create a new folder for top candidates' CVs
+        top_cv_folder = os.path.join(folder_path, "Top_CVs")
+        if not os.path.exists(top_cv_folder):
+            os.makedirs(top_cv_folder)
 
-    # Save ChatGPT report as a text file
-    chatgpt_report_file = "chatgpt_report.txt"
-    with open(chatgpt_report_file, "w") as file:
-        file.write(chatgpt_report)
+        # Copy relevant CV files to the new folder
+        for file_name, _ in relevant_cvs:
+            src_path = os.path.join(folder_path, file_name)
+            dest_path = os.path.join(top_cv_folder, file_name)
+            shutil.copy2(src_path, dest_path)  # copy2 preserves metadata
 
-    # Return relevant CVs, ranked candidates, and ChatGPT report file name
-    return relevant_cvs, ranked_candidates, chatgpt_report_file
+        # Generate ChatGPT report
+        relevant_texts = [(name, read_text_from_file(os.path.join(folder_path, name))) for name, _ in relevant_cvs]
+        chatgpt_report = generate_chatgpt_report(job_description, relevant_texts)
+
+        # Save ChatGPT report as a text file in the same folder as the zip file
+        chatgpt_report_file = "OptymyzeTech_AI_Candidate_Assessment.txt"
+        with open(chatgpt_report_file, "w") as file:
+            file.write(chatgpt_report)
+        print(f"ChatGPT report saved to {chatgpt_report_file}")  # Debug statement
+
+        return (relevant_cvs, ranked_candidates, chatgpt_report_file), None
+    except Exception as e:
+        return None, str(e)
 
 @app.route('/')
 def serve_frontend():
@@ -208,8 +217,14 @@ def evaluate():
         uploaded_file.save(os.path.join(cv_folder, uploaded_file.filename))
     
     # Process CVs using the new main function
-    relevant_cvs, ranked_candidates, chatgpt_report_file = main(job_description, cv_folder)
+    result, error = main(job_description, cv_folder)
     
+    if error:
+        print(f"Error processing CVs: {error}")
+        return jsonify({"error": error}), 500
+
+    relevant_cvs, ranked_candidates, chatgpt_report_file = result
+
     # Create a zip file of the top CVs
     zip_name = 'top_cvs.zip'
     create_zip_folder(os.path.join(cv_folder, "Top_CVs"), zip_name)
@@ -218,12 +233,13 @@ def evaluate():
     shutil.rmtree(cv_folder)
 
     # Generate a readable result for display
-    result = "\n".join([f"{i+1}. {name}: {score}" for i, (name, score) in enumerate(ranked_candidates)])
+    result_text = "\n".join([f"{i+1}. {name}: {score}" for i, (name, score) in enumerate(ranked_candidates)])
     
     if relevant_cvs:
-        print("Response: ", result)
+        print("Response: ", result_text)
         print("Zip Name: ", zip_name)
-        return jsonify({"result": result, "zip_name": zip_name, "chatgpt_report_file": chatgpt_report_file})
+        print("ChatGPT Report File: ", chatgpt_report_file)
+        return render_template('results.html', result=result_text, zip_name=zip_name, chatgpt_report_file=chatgpt_report_file)
     else:
         return jsonify({"error": "Failed to process CVs"}), 500
 
@@ -234,9 +250,10 @@ def results():
     chatgpt_report_file = request.args.get('chatgpt_report_file')
     return render_template('results.html', zip_name=zip_name, result=result, chatgpt_report_file=chatgpt_report_file)
 
-@app.route('/download/<filename>')
+@app.route('/download/<path:filename>')
 def download_file(filename):
-    return send_from_directory(os.getcwd(), filename, as_attachment=True)
+    print(f"Serving file {filename}")  # Debug statement
+    return send_from_directory('', filename, as_attachment=True)
 
 if __name__ == "__main__":
     app.run(debug=True)
