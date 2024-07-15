@@ -16,6 +16,7 @@ from nltk.stem import WordNetLemmatizer
 import string
 import zipfile
 import openai
+from fpdf import FPDF
 
 app = Flask(__name__, static_url_path='/static', static_folder='frontend/static', template_folder='frontend/templates')
 
@@ -130,6 +131,18 @@ def generate_chatgpt_report(job_description, cvs, batch_size=3, max_retries=10):
     
     return "\n\n".join(all_results)
 
+# Function to generate a PDF from the ChatGPT report
+def save_report_as_pdf(report, filename):
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_auto_page_break(auto=True, margin=15)
+    pdf.set_font("Arial", size=12)
+    
+    for line in report.split('\n'):
+        pdf.multi_cell(0, 10, line)
+    
+    pdf.output(filename)
+
 # Main function to process CVs and calculate scores
 def main(job_description, folder_path):
     try:
@@ -196,10 +209,9 @@ def main(job_description, folder_path):
         relevant_texts = [(name, read_text_from_file(os.path.join(folder_path, name))) for name, _ in relevant_cvs]
         chatgpt_report = generate_chatgpt_report(job_description, relevant_texts)
 
-        # Save ChatGPT report as a text file in the same folder as the zip file
-        chatgpt_report_file = "OptymyzeTech_AI_Candidate_Assessment.txt"
-        with open(chatgpt_report_file, "w") as file:
-            file.write(chatgpt_report)
+        # Save ChatGPT report as a PDF file
+        chatgpt_report_file = "OptymyzeTech_AI_Candidate_Assessment.pdf"
+        save_report_as_pdf(chatgpt_report, chatgpt_report_file)
         print(f"ChatGPT report saved to {chatgpt_report_file}")  # Debug statement
 
         return (relevant_cvs, ranked_candidates, chatgpt_report_file), None

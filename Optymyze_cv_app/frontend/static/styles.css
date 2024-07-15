@@ -10,23 +10,23 @@ header {
     background-color: #007bff; /* Blue header */
     color: white;
     text-align: center;
-    padding: 10px 0; /* Reduced padding for smaller header */
+    padding: 20px 0; /* Padding for header */
     width: 100%;
 }
 
 .logo {
-    width: 50px; /* Smaller logo */
+    width: 100px;
     display: block;
     margin: 0 auto;
 }
 
 h1 {
-    font-size: 1.5em; /* Adjust font size for smaller header */
+    font-size: 2em;
     margin: 0;
 }
 
 main {
-    min-height: calc(100vh - 120px); /* Adjusted for header and footer height */
+    min-height: calc(100vh - 160px); /* Adjusted for header and footer height */
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -35,8 +35,8 @@ main {
 }
 
 form {
-    width: 80%;
-    max-width: 600px;
+    width: 90%; /* Increased width to reduce whitespace */
+    max-width: 800px; /* Increased max-width */
     margin: 20px auto;
     padding: 20px;
     border: 1px solid #ccc;
@@ -94,30 +94,29 @@ form button:hover {
 
 #results {
     margin-top: 20px;
-    width: 80%;
-    max-width: 600px;
+    width: 90%;
+    max-width: 800px; /* Adjust width to match the form */
     text-align: center;
 }
 
 footer {
     background-color: #007bff; /* Blue footer */
     color: white;
-    height: 40px; /* Smaller footer */
+    height: 60px; /* Footer height */
     text-align: center;
-    padding: 10px 0; /* Reduced padding */
+    padding: 20px 0; /* Padding for footer */
     width: 100%;
     position: relative; /* Ensure it doesn't overlap content */
 }
 
 footer p {
     margin: 0;
-    font-size: 0.9em; /* Smaller text */
 }
 
 /* Responsive adjustments */
 @media (max-width: 600px) {
     h1 {
-        font-size: 1.2em; /* Smaller text on mobile */
+        font-size: 1.5em; /* Smaller text on mobile */
     }
 
     form {

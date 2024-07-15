@@ -1,14 +1,18 @@
-document.getElementById('cvForm').addEventListener('submit', async function (e) {
+document.getElementById('upload-form').addEventListener('submit', async function (e) {
     e.preventDefault();
 
     document.getElementById('spinner').style.display = 'block';
 
     const formData = new FormData();
-    formData.append('job_description', document.getElementById('jobDescription').value);
-    const files = document.getElementById('cvFiles').files;
+    formData.append('job_description', document.getElementById('job_description').value);
+    const files = document.getElementById('files').files;
     for (let i = 0; i < files.length; i++) {
         formData.append('files', files[i]);
     }
+
+    // Estimate time based on number of files
+    const estimatedTime = Math.ceil(files.length * 0.35); // 0.35 minutes per CV
+    document.getElementById('estimated-time').textContent = `Estimated time: ${estimatedTime} minutes`;
 
     try {
         const response = await fetch('/evaluate', {
@@ -23,9 +27,14 @@ document.getElementById('cvForm').addEventListener('submit', async function (e) 
         }
 
         const result = await response.json();
-        displayResults(result);
+        if (result.error) {
+            throw new Error(result.error);
+        } else {
+            displayResults(result);
+        }
     } catch (error) {
         console.error('There was a problem with the fetch operation:', error);
+        document.getElementById('results').textContent = 'Error in processing CVs. Please try again.';
     }
 });
 
