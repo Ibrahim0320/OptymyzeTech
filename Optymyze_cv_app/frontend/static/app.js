@@ -40,14 +40,11 @@ document.getElementById('upload-form').addEventListener('submit', async function
 
 function displayResults(result) {
     const resultsDiv = document.getElementById('results');
-    resultsDiv.innerHTML = '<h2>Results:</h2>';
-    const ul = document.createElement('ul');
-
-    for (const [cv, score] of Object.entries(result)) {
-        const li = document.createElement('li');
-        li.textContent = `${cv}: ${score}`;
-        ul.appendChild(li);
-    }
-
-    resultsDiv.appendChild(ul);
+    resultsDiv.innerHTML = `
+        <h2>Results:</h2>
+        <pre>${result.result}</pre>
+        <h2>OptymyzeTech AI Candidate Assessment</h2>
+        <pre>${result.chatgpt_report}</pre>
+        <a href="/download/${result.zip_name}" class="button">Download Top CVs</a>
+    `;
 }

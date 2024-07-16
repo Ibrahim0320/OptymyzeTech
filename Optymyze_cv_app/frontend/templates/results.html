@@ -13,15 +13,24 @@
         <h1>Optymyze Technologies</h1>
     </header>
     <main>
-        <div id="results">
-            <h2>Results:</h2>
-            <pre>{{ result }}</pre>
-            <a href="/download/{{ zip_name }}" class="button">Download Top CVs</a>
-            <a href="/download/{{ chatgpt_report_file }}" class="button">Download OptymyzeTech AI Candidate Assessment</a>
+        <form id="upload-form" action="/evaluate" method="post" enctype="multipart/form-data">
+            <label for="job_description">Job Description</label>
+            <textarea id="job_description" name="job_description" required></textarea>
+            
+            <label for="files">Upload CVs</label>
+            <input type="file" id="files" name="files" multiple required>
+
+            <button type="submit">Evaluate</button>
+        </form>
+        <div id="spinner" class="spinner">
+            <div class="spinner-icon"></div>
+            <p id="estimated-time">Estimating time...</p>
         </div>
+        <div id="results"></div>
     </main>
     <footer>
         <p>&copy; 2024 Optymyze Technologies. All rights reserved.</p>
     </footer>
+    <script src="/static/app.js"></script>
 </body>
 </html>

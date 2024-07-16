@@ -16,7 +16,6 @@ from nltk.stem import WordNetLemmatizer
 import string
 import zipfile
 import openai
-from fpdf import FPDF
 
 app = Flask(__name__, static_url_path='/static', static_folder='frontend/static', template_folder='frontend/templates')
 
@@ -131,18 +130,6 @@ def generate_chatgpt_report(job_description, cvs, batch_size=3, max_retries=10):
     
     return "\n\n".join(all_results)
 
-# Function to generate a PDF from the ChatGPT report
-def save_report_as_pdf(report, filename):
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.set_auto_page_break(auto=True, margin=15)
-    pdf.set_font("Arial", size=12)
-    
-    for line in report.split('\n'):
-        pdf.multi_cell(0, 10, line)
-    
-    pdf.output(filename)
-
 # Main function to process CVs and calculate scores
 def main(job_description, folder_path):
     try:
@@ -209,12 +196,7 @@ def main(job_description, folder_path):
         relevant_texts = [(name, read_text_from_file(os.path.join(folder_path, name))) for name, _ in relevant_cvs]
         chatgpt_report = generate_chatgpt_report(job_description, relevant_texts)
 
-        # Save ChatGPT report as a PDF file
-        chatgpt_report_file = "OptymyzeTech_AI_Candidate_Assessment.pdf"
-        save_report_as_pdf(chatgpt_report, chatgpt_report_file)
-        print(f"ChatGPT report saved to {chatgpt_report_file}")  # Debug statement
-
-        return (relevant_cvs, ranked_candidates, chatgpt_report_file), None
+        return (relevant_cvs, ranked_candidates, chatgpt_report), None
     except Exception as e:
         print(f"Exception in main function: {str(e)}")  # Debug statement
         return None, str(e)
@@ -246,7 +228,7 @@ def evaluate():
             print(f"Error processing CVs: {error}")
             return jsonify({"error": error}), 500
 
-        relevant_cvs, ranked_candidates, chatgpt_report_file = result
+        relevant_cvs, ranked_candidates, chatgpt_report = result
 
         # Create a zip file of the top CVs
         zip_name = 'top_cvs.zip'
@@ -261,25 +243,10 @@ def evaluate():
         if relevant_cvs:
             print("Response: ", result_text)
             print("Zip Name: ", zip_name)
-            print("ChatGPT Report File: ", chatgpt_report_file)
-            return render_template('results.html', result=result_text, zip_name=zip_name, chatgpt_report_file=chatgpt_report_file)
+            print("ChatGPT Report: ", chatgpt_report)
+            return jsonify({"result": result_text, "zip_name": zip_name, "chatgpt_report": chatgpt_report})
         else:
             return jsonify({"error": "Failed to process CVs"}), 500
     except Exception as e:
         print(f"Exception in evaluate function: {str(e)}")  # Debug statement
         return jsonify({"error": str(e)}), 500
-
-@app.route('/results')
-def results():
-    zip_name = request.args.get('zip_name')
-    result = request.args.get('result')
-    chatgpt_report_file = request.args.get('chatgpt_report_file')
-    return render_template('results.html', zip_name=zip_name, result=result, chatgpt_report_file=chatgpt_report_file)
-
-@app.route('/download/<path:filename>')
-def download_file(filename):
-    print(f"Serving file {filename}")  # Debug statement
-    return send_from_directory('', filename, as_attachment=True)
-
-if __name__ == "__main__":
-    app.run(debug=True)
