@@ -110,7 +110,13 @@ def generate_chatgpt_report(job_description, cvs, batch_size=3, max_retries=10):
             try:
                 response = requests.post('https://api.openai.com/v1/chat/completions', headers=headers, json=data)
                 response.raise_for_status()
-                all_results.append(response.json()['choices'][0]['message']['content'].strip())
+                report_content = response.json()['choices'][0]['message']['content'].strip()
+                # Split the report content into paragraphs
+                paragraphs = report_content.split('\n\n')
+                formatted_paragraphs = ''.join([f'<p>{para}</p>' for para in paragraphs])
+                # Add basic HTML formatting to the report
+                formatted_report = f'<div class="candidate-report"><h3>Candidate Report</h3>{formatted_paragraphs}</div>'
+                all_results.append(formatted_report)
                 break
             except requests.exceptions.HTTPError as e:
                 if response.status_code == 429:
@@ -128,7 +134,11 @@ def generate_chatgpt_report(job_description, cvs, batch_size=3, max_retries=10):
             print("Max retries exceeded. Could not complete the request.")
             return "Error: Unable to generate ChatGPT report due to rate limiting."
     
-    return "\n\n".join(all_results)
+    return "\n".join(all_results)
+
+
+
+
 
 # Main function to process CVs and calculate scores
 def main(job_description, folder_path):
