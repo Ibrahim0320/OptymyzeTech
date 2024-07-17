@@ -80,7 +80,10 @@ def create_zip_folder(folder_path, zip_name):
             for file in files:
                 zipf.write(os.path.join(root, file), os.path.relpath(os.path.join(root, file), folder_path))
 
-# Function to generate ChatGPT evaluation report with batch processing and retry logic
+
+
+import re
+
 def generate_chatgpt_report(job_description, cvs, batch_size=3, max_retries=10):
     headers = {
         'Content-Type': 'application/json',
@@ -111,11 +114,8 @@ def generate_chatgpt_report(job_description, cvs, batch_size=3, max_retries=10):
                 response = requests.post('https://api.openai.com/v1/chat/completions', headers=headers, json=data)
                 response.raise_for_status()
                 report_content = response.json()['choices'][0]['message']['content'].strip()
-                # Split the report content into paragraphs
-                paragraphs = report_content.split('\n\n')
-                formatted_paragraphs = ''.join([f'<p>{para}</p>' for para in paragraphs])
-                # Add basic HTML formatting to the report
-                formatted_report = f'<div class="candidate-report"><h3>Candidate Report</h3>{formatted_paragraphs}</div>'
+                # Use regex to split the content by "1. Name", "2. Name", etc.
+                formatted_report = split_and_format_report(report_content)
                 all_results.append(formatted_report)
                 break
             except requests.exceptions.HTTPError as e:
@@ -135,6 +135,43 @@ def generate_chatgpt_report(job_description, cvs, batch_size=3, max_retries=10):
             return "Error: Unable to generate ChatGPT report due to rate limiting."
     
     return "\n".join(all_results)
+
+def split_and_format_report(report_content):
+    # Regex pattern to identify "1. Name", "2. Name", etc.
+    pattern = r'(\d+\.\s[A-Za-z]+[^\n]*)'
+    split_content = re.split(pattern, report_content)
+    
+    formatted_report = ''
+    for i in range(1, len(split_content), 2):
+        candidate_info = split_content[i]
+        candidate_report = split_content[i+1].strip()
+        # Split the candidate report into smaller paragraphs
+        paragraphs = split_text_into_paragraphs(candidate_report, max_length=300)
+        formatted_paragraphs = ''.join([f'<p>{para}</p>' for para in paragraphs])
+        formatted_report += f'<div class="candidate-report"><h3>{candidate_info}</h3>{formatted_paragraphs}</div>'
+    
+    return formatted_report
+
+def split_text_into_paragraphs(text, max_length=300):
+    words = text.split()
+    paragraphs = []
+    current_paragraph = []
+
+    for word in words:
+        current_paragraph.append(word)
+        if len(' '.join(current_paragraph)) >= max_length:
+            paragraphs.append(' '.join(current_paragraph))
+            current_paragraph = []
+
+    if current_paragraph:
+        paragraphs.append(' '.join(current_paragraph))
+    
+    return paragraphs
+
+
+
+
+
 
 
 
