@@ -10,7 +10,6 @@ document.getElementById('upload-form').addEventListener('submit', async function
         formData.append('files', files[i]);
     }
 
-    // Estimate time based on number of files
     const estimatedTime = Math.ceil(files.length * 0.35); // 0.35 minutes per CV
     document.getElementById('estimated-time').textContent = `Estimated time: ${estimatedTime} minutes`;
 
@@ -40,11 +39,12 @@ document.getElementById('upload-form').addEventListener('submit', async function
 
 function displayResults(result) {
     const resultsDiv = document.getElementById('results');
+    const formattedResults = result.result.map(item => `${item[0]}: ${item[1]}`).join('<br>');
     resultsDiv.innerHTML = `
         <h2>Results:</h2>
-        <pre>${result.result}</pre>
-        <h2>OptymyzeTech AI Candidate Assessment</h2>
-        <pre>${result.chatgpt_report}</pre>
+        <div class="content-container"><pre>${formattedResults}</pre></div>
+        <h2>Optymyze AI Assessment of Top 10% of Candidates</h2>
+        <div class="content-container">${result.chatgpt_report}</div>
         <a href="/download/${result.zip_name}" class="button">Download Top CVs</a>
     `;
 }

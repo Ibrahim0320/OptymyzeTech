@@ -81,9 +81,9 @@
     <main>
         <div id="results">
             <h2>Results:</h2>
-            <pre>{{ result }}</pre>
-            <h2>OptymyzeTech AI Candidate Assessment</h2>
-            <div>{{ chatgpt_report|safe }}</div>
+            <div class="content-container">{{ result }}</div>
+            <h2>Optymyze AI Assessment of Top 10% of Candidates</h2>
+            <div class="content-container">{{ chatgpt_report|safe }}</div>
             <a href="/download/{{ zip_name }}" class="button">Download Top CVs</a>
         </div>
     </main>
