@@ -159,50 +159,51 @@ def split_text_into_paragraphs(text, max_length=300):
 
 def main(job_description, folder_path):
     try:
-        print("Main function started")  # Debug statement
+        start_time = time.time()
+        
+        print("Main function started")
         candidates = retrieve_candidate_texts(folder_path)
         if not candidates:
-            print("No CVs found")  # Debug statement
+            print("No CVs found")
             return None, "No CVs found in the folder."
+        step1_time = time.time()
+        print(f"Time to retrieve candidate texts: {step1_time - start_time:.2f} seconds")
 
         processed_features = [preprocess_text(text) for _, text in candidates]
-        print(f"Processed features: {processed_features}")  # Debug statement
+        step2_time = time.time()
+        print(f"Time to preprocess texts: {step2_time - step1_time:.2f} seconds")
 
         processed_texts = [preprocess_text(job_description)] + processed_features
         embeddings = encode_text_bert(processed_texts)
-        print(f"Embeddings: {embeddings}")  # Debug statement
+        step3_time = time.time()
+        print(f"Time to encode texts with BERT: {step3_time - step2_time:.2f} seconds")
 
         job_embed = embeddings[0]
         candidate_embeddings = embeddings[1:]
 
         tfidf_scores = calculate_similarity_tfidf(job_description, processed_features)
-        print(f"TF-IDF scores: {tfidf_scores}")  # Debug statement
-
         bert_scores = calculate_similarity_bert(job_embed, candidate_embeddings)
-        print(f"BERT scores: {bert_scores}")  # Debug statement
+        step4_time = time.time()
+        print(f"Time to calculate similarity scores: {step4_time - step3_time:.2f} seconds")
 
         weight_for_bert = 0.7
         weight_for_tfidf = 0.3
         final_scores = weight_for_bert * bert_scores + weight_for_tfidf * tfidf_scores
-        print(f"Final scores: {final_scores}")  # Debug statement
 
         ranked_candidates = sorted(zip([name for name, _ in candidates], final_scores), key=lambda x: x[1], reverse=True)
-        print(f"Ranked candidates: {ranked_candidates}")  # Debug statement
-
         highest_score = ranked_candidates[0][1]
-
         score_threshold = highest_score - (0.10 * highest_score)
-
         relevant_cvs = [candidate for candidate in ranked_candidates if candidate[1] >= score_threshold]
 
         if not relevant_cvs:
-            print("No CVs within the top 10% score range")  # Debug statement
+            print("No CVs within the top 10% score range")
             return None, "No CVs within the top 10% score range."
+        step5_time = time.time()
+        print(f"Time to rank candidates and filter top 10%: {step5_time - step4_time:.2f} seconds")
 
         top_cv_folder = os.path.join(folder_path, "Top_CVs")
         if not os.path.exists(top_cv_folder):
             os.makedirs(top_cv_folder)
-
         for file_name, _ in relevant_cvs:
             src_path = os.path.join(folder_path, file_name)
             dest_path = os.path.join(top_cv_folder, file_name)
@@ -214,10 +215,12 @@ def main(job_description, folder_path):
 
         relevant_texts = [(name, read_text_from_file(os.path.join(folder_path, name))) for name, _ in relevant_cvs]
         chatgpt_report = generate_chatgpt_report(job_description, relevant_texts)
+        step6_time = time.time()
+        print(f"Time to generate ChatGPT report: {step6_time - step5_time:.2f} seconds")
 
         return (relevant_cvs, formatted_ranked_candidates, chatgpt_report), None
     except Exception as e:
-        print(f"Exception in main function: {str(e)}")  # Debug statement
+        print(f"Exception in main function: {str(e)}")
         return None, str(e)
 
 @app.route('/')
