@@ -27,25 +27,34 @@ openai.api_key = ""
 tokenizer = BertTokenizer.from_pretrained('bert-base-cased')
 model = BertModel.from_pretrained('bert-base-cased')
 
+# Function to read text from a file
 def read_text_from_file(file_path):
     text = ""
-    if file_path.endswith('.pdf'):
-        with pdfplumber.open(file_path) as pdf:
-            text = ' '.join(page.extract_text() for page in pdf.pages if page.extract_text())
-    elif file_path.endswith('.docx'):
-        doc = Document(file_path)
-        text = ' '.join(para.text for para in doc.paragraphs)
+    try:
+        if file_path.endswith('.pdf'):
+            with pdfplumber.open(file_path) as pdf:
+                text = ' '.join(page.extract_text() for page in pdf.pages if page.extract_text())
+        elif file_path.endswith('.docx'):
+            doc = Document(file_path)
+            text = ' '.join(para.text for para in doc.paragraphs)
+    except Exception as e:
+        print(f"Error reading {file_path}: {e}")
+        return None
     return text
 
+# Function to retrieve candidate texts from a folder
 def retrieve_candidate_texts(folder_path):
     texts = []
     for file_name in os.listdir(folder_path):
         file_path = os.path.join(folder_path, file_name)
-        if file_path.endswith('.pdf') or file_path.endswith('.docx'):
-            text = read_text_from_file(file_path)
+        text = read_text_from_file(file_path)
+        if text:
             texts.append((file_name, text))
+        else:
+            print(f"Skipped file due to reading error: {file_name}")
     return texts
 
+# Function to preprocess text
 def preprocess_text(text):
     text = text.lower()
     text = ''.join(char for char in text if char not in string.punctuation)
@@ -54,20 +63,24 @@ def preprocess_text(text):
     lemmatizer = WordNetLemmatizer()
     return ' '.join(lemmatizer.lemmatize(word) for word in words if word not in stop_words)
 
+# Function to encode text using BERT
 def encode_text_bert(texts):
     inputs = tokenizer(texts, return_tensors="pt", max_length=512, truncation=True, padding="max_length")
     outputs = model(**inputs)
     return outputs.last_hidden_state.mean(dim=1).detach().numpy()
 
+# Function to calculate similarity using TF-IDF
 def calculate_similarity_tfidf(job_description, candidate_features):
     vectorizer = TfidfVectorizer()
     all_texts = [job_description] + candidate_features
     vectors = vectorizer.fit_transform(all_texts)
     return cosine_similarity(vectors[0:1], vectors[1:]).flatten()
 
+# Function to calculate similarity using BERT embeddings
 def calculate_similarity_bert(job_embed, candidate_embeddings):
     return cosine_similarity([job_embed], candidate_embeddings).flatten()
 
+# Function to create a zip file from a folder
 def create_zip_folder(folder_path, zip_name):
     with zipfile.ZipFile(zip_name, 'w') as zipf:
         for root, _, files in os.walk(folder_path):
