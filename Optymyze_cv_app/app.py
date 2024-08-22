@@ -21,7 +21,7 @@ import openai
 app = Flask(__name__, static_url_path='/static', static_folder='frontend/static', template_folder='frontend/templates')
 
 # Set up OpenAI API key
-openai.api_key = ""
+openai.api_key = "sk-proj-FPIplm6pzyxN3vqq7HFkT3BlbkFJtEEX2RZzkjhvVKwZCQjk"
 
 # Load BERT model and tokenizer
 tokenizer = BertTokenizer.from_pretrained('bert-base-cased')
